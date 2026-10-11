@@ -19,7 +19,7 @@ namespace vis
     class visualise_base
     {
     public:
-        visualise_base(const std::filesystem::path& dir = VISUALISE_OUTPUT_DIR)
+        visualise_base(const std::filesystem::path& dir = OUTPUT_DIR)
         : _dir(dir)
         {
             if (!std::filesystem::exists(_dir))
@@ -163,7 +163,7 @@ namespace vis
         vis::operation _operation;
         // vis::frame _frame;
         frame_type _frame;
-        std::filesystem::path _dir = VISUALISE_OUTPUT_DIR;
+        std::filesystem::path _dir;
         std::filesystem::path _active_dir = _dir;
 
         bool _operation_open = false;

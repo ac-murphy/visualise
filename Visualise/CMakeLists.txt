@@ -27,7 +27,20 @@ target_include_directories(Visualise PUBLIC
         ${PROJECT_SOURCE_DIR}/
         ${PROJECT_SOURCE_DIR}/Dependencies/Json/single_include/nlohmann
 )
-target_compile_definitions(Visualise PUBLIC
-        VISUALISE_PYTHON_DIR="${PROJECT_SOURCE_DIR}/Python/"
-)
 target_link_libraries(Visualise)
+
+set(PYTHON_MAIN_DIR "${PROJECT_SOURCE_DIR}/Python/src/")
+set(PYTHON_EXE_DIR "${PROJECT_SOURCE_DIR}/Python/.venv/Scripts/")
+set(PYTHON_DIST_DIR "${PROJECT_SOURCE_DIR}/Python/dist/")
+target_compile_definitions(Visualise PUBLIC
+        PYTHON_EXE_DIR="${PYTHON_EXE_DIR}"
+        PYTHON_MAIN_DIR="${PYTHON_MAIN_DIR}"
+)
+
+add_custom_target(VisualiseExecutable
+        COMMAND "${PYTHON_EXE_DIR}/python.exe" -m PyInstaller
+                --onedir
+                --name Visualise
+                --distpath "${PYTHON_DIST_DIR}"
+                "${PYTHON_MAIN_DIR}/main.py"
+)
