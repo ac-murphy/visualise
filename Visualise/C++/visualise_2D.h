@@ -52,8 +52,8 @@ namespace vis
         std::vector<value_type> x_values, y_values;
 
         plot_2D() = default;
-        template <std::ranges::range container_x_type,
-                  std::ranges::range container_y_type>
+        template <typename container_x_type,
+                  typename container_y_type>
         plot_2D(const container_x_type& x_values,
                 const container_y_type& y_values)
         : x_values(vis::vector_cast<value_type>(x_values)),
@@ -66,9 +66,9 @@ namespace vis
         std::vector<value_type> x_values, y_values, z_values;
 
         plot_3D() = default;
-        template <std::ranges::range container_x_type,
-                  std::ranges::range container_y_type,
-                  std::ranges::range container_z_type>
+        template <typename container_x_type,
+                  typename container_y_type,
+                  typename container_z_type>
         plot_3D(const container_x_type& x_values,
                 const container_y_type& y_values,
                 const container_z_type& z_values)
