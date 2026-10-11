@@ -163,6 +163,14 @@ namespace vis
             _frame.axis_labels[0] = x_label;
             _frame.axis_labels[1] = y_label;
         }
+        void set_axis_labels(const std::string& x_label,
+                             const std::string& y_label,
+                             const std::string& z_label)
+        {
+            _frame.axis_labels[0] = x_label;
+            _frame.axis_labels[1] = y_label;
+            _frame.axis_labels[1] = z_label;
+        }
         void set_legend_visible(const bool& visible)
         {
             _frame.legend_visible = visible;
