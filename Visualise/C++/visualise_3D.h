@@ -28,7 +28,7 @@ namespace vis
         {
             sys::run_cmd({ "blender",
                            (_dir / "vis.blend").string(),
-                           "--python", PYTHON_DIR"main.py",
+                           "--python", VISUALISE_PYTHON_DIR"main.py",
                            "--",
                            "--mode", "3D",
                            "--input", _dir.string() });

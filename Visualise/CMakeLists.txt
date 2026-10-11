@@ -28,8 +28,6 @@ target_include_directories(Visualise PUBLIC
         ${PROJECT_SOURCE_DIR}/Dependencies/Json/single_include/nlohmann
 )
 target_compile_definitions(Visualise PUBLIC
-        PYTHON_DIR="${PROJECT_SOURCE_DIR}/Python/"
-        PYTHON_EXE_DIR="${PROJECT_SOURCE_DIR}/Python/.venv/Scripts/"
-        OUTPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Output/"
+        VISUALISE_PYTHON_DIR="${PROJECT_SOURCE_DIR}/Python/"
 )
 target_link_libraries(Visualise)

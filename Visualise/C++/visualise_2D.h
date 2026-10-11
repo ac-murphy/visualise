@@ -89,7 +89,7 @@ namespace vis
         }
         void _run() const override
         {
-            sys::run_cmd({ PYTHON_EXE_DIR"python.exe", PYTHON_DIR"main.py",
+            sys::run_cmd({ VISUALISE_PYTHON_EXE_DIR"python.exe", VISUALISE_PYTHON_DIR"main.py",
                            "--mode", "2D",
                            "--input", _dir.string() });
         }
