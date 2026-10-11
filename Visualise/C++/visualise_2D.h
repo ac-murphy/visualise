@@ -23,7 +23,7 @@ namespace vis
         bool legend_visible;
     };
 
-    template <typename value_type, std::ranges::range container_type>
+    template <typename value_type, typename container_type>
     std::vector<value_type> vector_cast(const container_type& container)
     {
         if constexpr (std::same_as<container_type, std::vector<value_type>>)
@@ -33,7 +33,8 @@ namespace vis
 
         std::vector<value_type> result;
         result.reserve(container.size());
-        result.insert(result.end(), container.begin(), container.end());
+        for (int32_t i = 0; i < container.size(); ++i)
+            result.push_back(static_cast<value_type>(container.data()[i]));
         return result;
     }
 
@@ -94,7 +95,7 @@ namespace vis
                            "--mode", "2D",
                            "--input", _dir.string() });
         #else
-            sys::run_cmd({ PYTHON_DIST_DIR"Visualise/Visualise.exe",
+            sys::run_cmd({ PYTHON_DIST_DIR"/Visualise/Visualise.exe",
                            "--mode", "2D",
                            "--input", _dir.string() });
         #endif
