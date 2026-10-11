@@ -41,7 +41,7 @@ def add_plot_2D(data_path: Path):
 @register
 def add_plot_3D(data_path: Path):
     x_values = bin.read(data_path/'x_values', n_cols=1, dtype=np.float32)
-    y_values = bin.read(data_path/'x_values', n_cols=1, dtype=np.float32)
+    y_values = bin.read(data_path/'y_values', n_cols=1, dtype=np.float32)
 
     metadata = json.read(data_path/'metadata')
     storage_order = data_storage_order(metadata.get('data_storage_order', 0))
