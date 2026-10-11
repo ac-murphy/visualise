@@ -23,6 +23,20 @@ namespace vis
         bool legend_visible;
     };
 
+    template <typename value_type, std::ranges::range container_type>
+    std::vector<value_type> vector_cast(const container_type& container)
+    {
+        if constexpr (std::same_as<container_type, std::vector<value_type>>)
+        {
+            return container;
+        }
+
+        std::vector<value_type> result;
+        result.reserve(container.size());
+        result.insert(result.end(), container.begin(), container.end());
+        return result;
+    }
+
     template <typename value_type>
     struct plot_base
     {
@@ -38,9 +52,11 @@ namespace vis
         std::vector<value_type> x_values, y_values;
 
         plot_2D() = default;
-        plot_2D(const std::vector<value_type>& x_values,
-                const std::vector<value_type>& y_values)
-        : x_values(x_values), y_values(y_values)
+        template <std::ranges::range container_type>
+        plot_2D(const container_type& x_values,
+                const container_type& y_values)
+        : x_values(vis::vector_cast<value_type>(x_values)),
+          y_values(vis::vector_cast<value_type>(y_values))
         {}
     };
     template <typename value_type>
@@ -52,7 +68,9 @@ namespace vis
         plot_3D(const std::vector<value_type>& x_values,
                 const std::vector<value_type>& y_values,
                 const std::vector<value_type>& z_values)
-        : x_values(x_values), y_values(y_values), z_values(z_values)
+        : x_values(vis::vector_cast<value_type>(x_values)),
+          y_values(vis::vector_cast<value_type>(y_values)),
+          z_values(vis::vector_cast<value_type>(z_values))
         {}
     };
 
