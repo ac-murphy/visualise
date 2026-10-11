@@ -20,11 +20,9 @@ def register(func):
     __functions__[func.__name__] = func
     return func
 
-
 class data_storage_order(Enum):
     row_major=0
     column_major=1
-
 
 @register
 def add_plot_2D(data_path: Path):

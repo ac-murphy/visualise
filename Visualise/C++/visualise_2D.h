@@ -176,7 +176,7 @@ namespace vis
         {
             _frame.axis_labels[0] = x_label;
             _frame.axis_labels[1] = y_label;
-            _frame.axis_labels[1] = z_label;
+            _frame.axis_labels[2] = z_label;
         }
         void set_legend_visible(const bool& visible)
         {
