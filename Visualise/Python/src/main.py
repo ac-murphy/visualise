@@ -10,16 +10,14 @@ if str(SCRIPT_DIR) not in sys.path:
 
 if __name__ == "__main__":
     # 1. read command line arguments:
-    # here we account for the '--' argument separator for using blender.
-
+    # a) here we account for the '--' argument separator for using blender.
     argv = sys.argv[1:]
     if '--' in argv: argv = argv[argv.index('--') + 1:]
-    # initialise the parser:
+    # b) initialise the parser:
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', type=str)
     parser.add_argument('--input', type=Path)
     args = parser.parse_args(argv)
-
 
     # 2. decide whether to use matplotlib or blender
     match args.mode:

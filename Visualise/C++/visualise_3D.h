@@ -21,17 +21,26 @@ namespace vis
     {
     };
 
-    class visualise_3D : public visualise_base<>
+    class visualise_3D : public visualise_base<frame>
     {
     private:
         void _run() const override
         {
+        // #if PYTHON_TEST_MODE == 1
             sys::run_cmd({ "blender",
                            (_dir / "vis.blend").string(),
-                           "--python", PYTHON_MAIN_DIR"main.py",
+                           "--python", PYTHON_SOURCE_DIR"main.py",
                            "--",
                            "--mode", "3D",
                            "--input", _dir.string() });
+        // #else
+        //     sys::run_cmd({ "blender",
+        //                    (_dir / "vis.blend").string(),
+        //                    "--python", PYTHON_DIR"blender_launcher.py",
+        //                    "--",
+        //                    "--mode", "3D",
+        //                    "--input", _dir.string() });
+        // #endif
         }
 
     public:

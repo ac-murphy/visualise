@@ -15,13 +15,7 @@ file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/*.h" "${PROJECT_SOURCE_DIR}/*.c
 list(FILTER SOURCES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/Dependencies")
 list(FILTER SOURCES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/Python")
 
-add_library(Visualise STATIC ${SOURCES}
-        C++/IO/BIN.h
-        C++/types.h
-        C++/system.h
-        C++/visualise_3D.h
-        C++/visualise_2D.h
-        C++/visualise_base.h)
+add_library(Visualise STATIC ${SOURCES})
 
 target_include_directories(Visualise PUBLIC
         ${PROJECT_SOURCE_DIR}/
@@ -29,18 +23,25 @@ target_include_directories(Visualise PUBLIC
 )
 target_link_libraries(Visualise)
 
-set(PYTHON_MAIN_DIR "${PROJECT_SOURCE_DIR}/Python/src/")
+set(PYTHON_SOURCE_DIR "${PROJECT_SOURCE_DIR}/Python/src/")
 set(PYTHON_EXE_DIR "${PROJECT_SOURCE_DIR}/Python/.venv/Scripts/")
 set(PYTHON_DIST_DIR "${PROJECT_SOURCE_DIR}/Python/dist/")
+option(PYTHON_TEST_MODE "Run Python with source files" OFF)
 target_compile_definitions(Visualise PUBLIC
         PYTHON_EXE_DIR="${PYTHON_EXE_DIR}"
-        PYTHON_MAIN_DIR="${PYTHON_MAIN_DIR}"
+        PYTHON_DIR="${PROJECT_SOURCE_DIR}/Python/"
+        PYTHON_SOURCE_DIR="${PYTHON_SOURCE_DIR}"
+        PYTHON_DIST_DIR="${PYTHON_DIST_DIR}"
+        PYTHON_TEST_MODE=$<BOOL:${PYTHON_TEST_MODE}>
 )
+
+message(STATUS "Running Python with source files: ${PYTHON_TEST_MODE}")
 
 add_custom_target(VisualiseExecutable
         COMMAND "${PYTHON_EXE_DIR}/python.exe" -m PyInstaller
                 --onedir
                 --name Visualise
                 --distpath "${PYTHON_DIST_DIR}"
-                "${PYTHON_MAIN_DIR}/main.py"
+                --noconfirm
+                "${PYTHON_SOURCE_DIR}/main.py"
 )
