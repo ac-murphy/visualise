@@ -74,19 +74,19 @@ TEST_F(UnitTest, Test_2D)
         vis.set_axis_labels("$x$", "$y$");
         vis.set_legend_visible(true);
 
-        vis::plot_2D plot1(x, y1);
+        vis::plot_2D<float> plot1(x, y1);
         plot1.style = "--";
         plot1.label = "$y = sin(x)$";
         vis.add_plot(plot1);
 
-        vis::plot_2D plot2(x, y2);
+        vis::plot_2D<float> plot2(x, y2);
         plot2.label = "$y = cos(x)$";
         vis.add_plot(plot2);
     }
     vis.end_frame();
     vis.begin_frame("test 3D plot");
     {
-        vis::plot_3D plot(x, x, z);
+        vis::plot_3D<float> plot(x, x, z);
         plot.label = "$z = f(x) + g(y)$";
         plot.data_storage_order = vis::storage_order::column_major;
         vis.add_plot(plot);
