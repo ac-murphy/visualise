@@ -19,19 +19,7 @@ namespace vis
     class visualise_base
     {
     public:
-    #ifdef VISUALISE_OUTPUT_DIR
-        visualise_base()
-        {
-
-            if (!std::filesystem::exists(_dir))
-                throw std::runtime_error("visualise_base::visualise_base \"default directory is invalid; please specify\"");
-
-            visualise_base::refresh();
-        }
-    #else
-        visualise_base() = delete;
-    #endif
-        visualise_base(const std::filesystem::path& dir)
+        visualise_base(const std::filesystem::path& dir = VISUALISE_OUTPUT_DIR)
         : _dir(dir)
         {
             if (!std::filesystem::exists(_dir))
