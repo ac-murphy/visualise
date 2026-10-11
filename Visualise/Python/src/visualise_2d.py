@@ -45,8 +45,10 @@ def add_plot_3D(data_path: Path):
 
     data = json.read(data_path/'data')
     storage_order = data_storage_order(data.get('data_storage_order', 0))
-    z_data_columns = len(x_values) if storage_order == data_storage_order.row_major else len(y_values)
-    Z_values = bin.read(data_path/'z_values', n_cols=z_data_columns, dtype=np.float32)
+    if storage_order == data_storage_order.row_major:
+        Z_values = bin.read(data_path/'z_values', n_cols=len(x_values), dtype=np.float32)
+    else:
+        Z_values = bin.read(data_path/'z_values', n_cols=len(y_values), dtype=np.float32).T
 
     X_values, Y_values = np.meshgrid(x_values, y_values)
     print(X_values.shape, Y_values.shape, Z_values.shape)
