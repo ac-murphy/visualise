@@ -13,8 +13,8 @@ namespace vis
     };
     enum storage_order
     {
-        row_major,
-        column_major
+        row_major = 0,
+        column_major = 1
     };
     struct canvas : frame_base
     {
@@ -91,7 +91,7 @@ namespace vis
         void _run() const override
         {
         #if PYTHON_TEST_MODE == 1
-            sys::run_cmd({ PYTHON_EXE_DIR"python.exe", PYTHON_MAIN_DIR"main.py",
+            sys::run_cmd({ PYTHON_EXE_DIR"python.exe", PYTHON_SOURCE_DIR"main.py",
                            "--mode", "2D",
                            "--input", _dir.string() });
         #else

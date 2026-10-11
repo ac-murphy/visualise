@@ -43,8 +43,8 @@ def add_plot_3D(data_path: Path):
     x_values = bin.read(data_path/'x_values', n_cols=1, dtype=np.float32)
     y_values = bin.read(data_path/'y_values', n_cols=1, dtype=np.float32)
 
-    metadata = json.read(data_path/'metadata')
-    storage_order = data_storage_order(metadata.get('data_storage_order', 0))
+    data = json.read(data_path/'data')
+    storage_order = data_storage_order(data.get('data_storage_order', 0))
     z_data_columns = len(x_values) if storage_order == data_storage_order.row_major else len(y_values)
     Z_values = bin.read(data_path/'z_values', n_cols=z_data_columns, dtype=np.float32)
 

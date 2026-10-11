@@ -26,7 +26,7 @@ target_link_libraries(Visualise)
 set(PYTHON_SOURCE_DIR "${PROJECT_SOURCE_DIR}/Python/src/")
 set(PYTHON_EXE_DIR "${PROJECT_SOURCE_DIR}/Python/.venv/Scripts/")
 set(PYTHON_DIST_DIR "${PROJECT_SOURCE_DIR}/Python/dist/")
-option(PYTHON_TEST_MODE "Run Python with source files" OFF)
+option(PYTHON_TEST_MODE "Run Python with source files" ON)
 target_compile_definitions(Visualise PUBLIC
         PYTHON_EXE_DIR="${PYTHON_EXE_DIR}"
         PYTHON_DIR="${PROJECT_SOURCE_DIR}/Python/"
