@@ -65,9 +65,10 @@ namespace vis
         std::vector<value_type> x_values, y_values, z_values;
 
         plot_3D() = default;
-        plot_3D(const std::vector<value_type>& x_values,
-                const std::vector<value_type>& y_values,
-                const std::vector<value_type>& z_values)
+        template <std::ranges::range container_type>
+        plot_3D(const container_type& x_values,
+                const container_type& y_values,
+                const container_type& z_values)
         : x_values(vis::vector_cast<value_type>(x_values)),
           y_values(vis::vector_cast<value_type>(y_values)),
           z_values(vis::vector_cast<value_type>(z_values))
