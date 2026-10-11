@@ -1,3 +1,4 @@
 {
-    "type": "set_points"
+    "name": "operation_0",
+    "type": "add_plot_2D"
 }

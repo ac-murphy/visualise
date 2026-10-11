@@ -1,12 +1,12 @@
 from argparse import Namespace
 from pathlib import Path
-
-import bpy_interface as bpyi
-import bpy
+import blender.interface as bpyi
+import blender.shaders as bpys
 import IO.JSON as json
 import IO.BIN as bin
-import mathutils
 import numpy as np
+import mathutils
+import bpy
 
 __metadata__ = {}
 __functions__ = {}
@@ -29,26 +29,22 @@ def add_marker(*, data_path: Path):
 def add_axes(*, data_path: Path):
     data = json.read(data_path/'data')
     location = mathutils.Vector(data['location'])
-    x_axis = np.array(data['x_axis'])
-    y_axis = np.array(data['y_axis'])
-    z_axis = np.array(data['z_axis'])
-    rotation = np.empty((3, 3), dtype=np.float32)
-    rotation[:, 0] = x_axis
-    rotation[:, 1] = y_axis
-    rotation[:, 2] = z_axis
+    rotation = mathutils.Matrix(data['basis'])
 
     bpy.ops.object.empty_add(
         type='ARROWS',
         location=location,
         radius=0.2
     )
-    bpy.context.active_object.rotation = rotation
+    bpy.context.active_object.rotation_euler = rotation.to_euler()
 
 @register
-def set_points(*, data_path: Path):
+def add_points(*, data_path: Path):
     points = bin.read(data_path/'points', n_cols=3, dtype=np.float32)
+    data = json.read(data_path/'data')
 
     points_obj = bpyi.render_vertices(points)
+    bpys.apply_point_cloud_shader(points_obj)
 
 @register
 def add_mesh(*, data_path: Path):
@@ -73,7 +69,6 @@ def add_plane(*, data_path: Path):
     bpy.context.active_object.rotation_mode = 'QUATERNION'
     bpy.context.active_object.rotation_quaternion = rotation
 
-
 def run_all(data_path: Path):
 
     # generate frames:
@@ -81,7 +76,7 @@ def run_all(data_path: Path):
     for i in range(frames):
         frame_path = data_path/f'frame_{i}'
         frame_metadata = json.read(frame_path/'metadata')
-        frame_name = frame_metadata['name'] or 'frame'
+        frame_name = frame_metadata.get('name', f'frame-{str(i)}')
         frame_layer_collection = bpyi.create_layer_collection(frame_name, bpyi.workspace)
 
         # set destination for all generated operations:
@@ -101,8 +96,7 @@ def run_all(data_path: Path):
         bpyi.set_collection_visible(frame_layer_collection, True,  frame=i + 1)
         bpyi.set_collection_visible(frame_layer_collection, False, frame=i + 2)
 
-
-def run_with(args: Namespace):
+def main(args: Namespace):
     bpyi.init()
 
     global __metadata__

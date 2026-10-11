@@ -1,1 +1,4 @@
-{"location":[1.0,1.0,1.0]}
+{
+    "data_storage_order": 1,
+    "label": "$z = f(x) + g(y)$"
+}

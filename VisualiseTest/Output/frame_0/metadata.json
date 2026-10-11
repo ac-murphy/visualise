@@ -1,4 +1,11 @@
 {
-    "name": "first-scene",
-    "operation_count": 2
+    "axis_labels": [
+        "$x$",
+        "$y$",
+        ""
+    ],
+    "legend_visible": true,
+    "name": "test 2D plot",
+    "operation_count": 2,
+    "projection": "2d"
 }

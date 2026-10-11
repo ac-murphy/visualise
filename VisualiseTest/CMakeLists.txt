@@ -23,6 +23,7 @@ target_include_directories(Visualise PUBLIC
         ${PROJECT_SOURCE_DIR}/
         ${PROJECT_SOURCE_DIR}/Dependencies/Json/single_include/nlohmann
         ${PROJECT_SOURCE_DIR}/Dependencies/GTest/googletest-1.17.0/googletest/include
+        ${PROJECT_SOURCE_DIR}/Dependencies/Eigen/eigen-5.0.0/Eigen
 )
 target_compile_definitions(Visualise PUBLIC
         OUTPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Output/"

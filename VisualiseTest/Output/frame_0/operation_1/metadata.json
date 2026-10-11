@@ -1,3 +1,4 @@
 {
-    "type": "add_marker"
+    "name": "operation_1",
+    "type": "add_plot_2D"
 }

@@ -13,11 +13,15 @@ message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 
 file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/*.h" "${PROJECT_SOURCE_DIR}/*.cpp")
 list(FILTER SOURCES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/Dependencies")
+list(FILTER SOURCES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/Python")
 
 add_library(Visualise STATIC ${SOURCES}
         C++/IO/BIN.h
         C++/types.h
-        C++/system.h)
+        C++/system.h
+        C++/visualise_3D.h
+        C++/visualise_2D.h
+        C++/visualise_base.h)
 
 target_include_directories(Visualise PUBLIC
         ${PROJECT_SOURCE_DIR}/
@@ -25,6 +29,7 @@ target_include_directories(Visualise PUBLIC
 )
 target_compile_definitions(Visualise PUBLIC
         PYTHON_DIR="${PROJECT_SOURCE_DIR}/Python/"
+        PYTHON_EXE_DIR="${PROJECT_SOURCE_DIR}/Python/.venv/Scripts/"
         OUTPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Output/"
 )
 target_link_libraries(Visualise)
