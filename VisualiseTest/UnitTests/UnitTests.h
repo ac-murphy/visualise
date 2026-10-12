@@ -7,7 +7,7 @@
 class Experimentation : public ::testing::Test {};
 TEST_F(Experimentation, Geometric)
 {
-    vis::geometry vis;
+    vis::visualise_geometry vis;
 
     std::array<float, 3> point{1.0f, 1.0f, 1.0f};
     std::vector<std::array<float, 3>> points{

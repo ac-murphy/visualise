@@ -3,7 +3,6 @@
 #include <system_error>
 
 #include "include_guard.h"
-#include "visualise_base.h"
 #include "json.hpp"
 #include "framework/visualise_base.h"
 #include "framework/types.h"
@@ -90,7 +89,7 @@ namespace vis
         float& radius = this->size;
     };
 
-    class geometry : public visualise_base<frame>
+    class visualise_geometry : public visualise_base<frame>
     {
     private:
         void _run() const override
@@ -177,7 +176,7 @@ namespace vis
             point_cloud.points = points;
             point_cloud.rgba = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-            geometry::add_points(point_cloud);
+            visualise_geometry::add_points(point_cloud);
         }
 
     /// Solid objects.
