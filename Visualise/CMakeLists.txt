@@ -15,10 +15,12 @@ file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/*.h" "${PROJECT_SOURCE_DIR}/*.c
 list(FILTER SOURCES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/Dependencies")
 list(FILTER SOURCES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/Python")
 
-add_library(Visualise STATIC ${SOURCES})
+add_library(Visualise STATIC ${SOURCES}
+        C++/framework/converting_types.h)
 
 target_include_directories(Visualise PUBLIC
         ${PROJECT_SOURCE_DIR}/
+        ${PROJECT_SOURCE_DIR}/C++/
         ${PROJECT_SOURCE_DIR}/Dependencies/Json/single_include/nlohmann
 )
 target_link_libraries(Visualise)

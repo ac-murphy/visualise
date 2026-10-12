@@ -1,10 +1,7 @@
 #pragma once
-
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-
-#include "C++/types.h"
 
 namespace vis::io::bin
 {

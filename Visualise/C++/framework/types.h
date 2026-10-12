@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <iostream>
 
 namespace vis::concepts
 {
@@ -151,5 +152,33 @@ namespace vis
         // for (int32_t i = 0; i < container.size(); ++i)
         //     result.push_back(static_cast<value_type>(container.data()[i]));
         // return result;
+    }
+
+    template <typename container_type>
+    requires (vis::concepts::supports_linear_index<container_type>)
+    auto index(container_type& container, const size_t& i)
+    {
+        if constexpr (vis::concepts::supports_linear_bracket_index<container_type>)
+        {
+            return container[i];
+        }
+        else if constexpr (vis::concepts::supports_linear_parentheses_index<container_type>)
+        {
+            return container(i);
+        }
+    }
+
+    template <typename container_type>
+    requires (vis::concepts::supports_multidimensional_index<container_type>)
+    auto index(container_type& container, const size_t& i, const size_t& j)
+    {
+        if constexpr (vis::concepts::supports_multidimensional_bracket_index<container_type>)
+        {
+            return container[i][j];
+        }
+        else if constexpr (vis::concepts::supports_multidimensional_parentheses_index<container_type>)
+        {
+            return container(i, j);
+        }
     }
 }

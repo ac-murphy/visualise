@@ -1,3 +1,3 @@
 #pragma once
-#include "C++/visualise_plotting.h"
-#include "C++/visualise_geometry.h"
+#include "C++/tools/plotting.h"
+#include "C++/tools/geometry.h"
