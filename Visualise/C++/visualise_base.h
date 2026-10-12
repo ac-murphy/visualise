@@ -4,7 +4,7 @@
 #include <system_error>
 
 #include "json.hpp"
-#include "types.h"
+#include "framework/types.h"
 #include "IO/JSON.h"
 
 namespace vis
