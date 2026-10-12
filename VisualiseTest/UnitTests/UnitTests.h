@@ -62,21 +62,30 @@ TEST_F(UnitTest, Test_Geometric)
     }
     vis.end_frame();
 
-    // vis.begin_frame("first-scene");
-    //     vis.add_points(points);
-    //     vis.add_marker(point);
-    // vis.end_frame();
-    //
-    // vis.begin_frame("second-scene");
-    //     vis.add_marker(point);
-    //     vis.add_plane(point, std::array{ 1.0f, 1.0f, 1.0f });
-    //     vis.add_axes(point, basis);
-    // vis.end_frame();
-    //
-    // vis.begin_frame("third-scene");
-    //     vis.add_points(points);
-    //     vis.add_mesh(points, tri_indices);
-    // vis.end_frame();
+    vis.begin_frame("first-scene");
+    {
+        vis.add_points(points);
+        vis.add_marker(point);
+        vis::arrow<float> arrow;
+        arrow.direction = { 1.0f, 1.0f, 1.0f };
+
+    }
+    vis.end_frame();
+
+    vis.begin_frame("second-scene");
+    {
+        vis.add_marker(point);
+        vis.add_plane(point, std::array{ 1.0f, 1.0f, 1.0f });
+        vis.add_axes(point, basis);
+    }
+    vis.end_frame();
+
+    vis.begin_frame("third-scene");
+    {
+        vis.add_points(points);
+        vis.add_mesh(points, tri_indices);
+    }
+    vis.end_frame();
 
     vis.run();
 }

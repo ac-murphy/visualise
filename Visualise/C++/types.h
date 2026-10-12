@@ -73,7 +73,7 @@ namespace vis::types
 {
     using point_3D = std::array<float, 3>;
     template <typename value_type, size_t dimension>
-    using point = std::array<value_type, dimension>;
+    using vector = std::array<value_type, dimension>;
     template <typename value_type, size_t rows, size_t columns>
     using matrix = std::array<std::array<value_type, columns>, rows>;
     using id = uint32_t;
@@ -152,11 +152,6 @@ namespace vis
         throw std::runtime_error(std::format("vector_cast \"could not convert \'{}\' to \'std::vector<{}>\'\"",
                                              typeid(container_type).name(),
                                              typeid(value_type).name()));
-
-        // result.reserve(container.size());
-        // for (int32_t i = 0; i < container.size(); ++i)
-        //     result.push_back(static_cast<value_type>(container.data()[i]));
-        // return result;
     }
 
     template <typename container_type>

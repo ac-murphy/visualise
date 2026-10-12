@@ -1,5 +1,7 @@
 from argparse import Namespace
 from pathlib import Path
+from types import SimpleNamespace
+from geometric.defaults import __defaults__
 import geometric.blender_interface as bpyi
 import geometric.blender_shaders as bpys
 import IO.JSON as json
@@ -18,33 +20,52 @@ def register(func):
 @register
 def add_marker(*, data_path: Path):
     data = json.read(data_path/'data')
+    size = data.get('size', __defaults__.empty_obj.size)
     location = mathutils.Vector(data['location'])
+
     bpy.ops.object.empty_add(
         type='PLAIN_AXES',
         location=location,
-        radius=0.2
+        radius=size
     )
 
 @register
 def add_axes(*, data_path: Path):
     data = json.read(data_path/'data')
+    size = data.get('size', __defaults__.empty_obj.size)
     location = mathutils.Vector(data['location'])
     rotation = mathutils.Matrix(data['basis'])
 
     bpy.ops.object.empty_add(
         type='ARROWS',
         location=location,
-        radius=0.2
+        radius=size
     )
     bpy.context.active_object.rotation_euler = rotation.to_euler()
+
+@register
+def add_arrow(*, data_path: Path):
+    data = json.read(data_path/'data')
+    size = data.get('size', __defaults__.empty_obj.size)
+    location = mathutils.Vector(data['location'])
+    direction = mathutils.Vector(data['direction'])
+
+    bpy.ops.object.empty_add(
+        type='ARROWS',
+        location=location,
+        radius=size
+    )
+    bpy.context.active_object.rotation_mode = 'QUATERNION'
+    bpy.context.active_object.rotation_quaternion = direction.to_track_quat('-Z', 'Y')
 
 @register
 def add_points(*, data_path: Path):
     points = bin.read(data_path/'points', n_cols=3, dtype=np.float32)
     data = json.read(data_path/'data')
+    size = data.get('size', __defaults__.empty_obj.size)
 
     points_obj = bpyi.render_vertices(points)
-    bpys.apply_point_cloud_shader(points_obj)
+    bpys.apply_point_cloud_shader(points_obj) # todo: pass <size> into apply_point_cloud_shader()
 
 @register
 def add_mesh_from_tris(*, data_path: Path):
@@ -64,13 +85,14 @@ def add_mesh_from_quads(*, data_path: Path):
 def add_plane(*, data_path: Path):
     # variables:
     data = json.read(data_path/'data')
+    size = data.get('size', __defaults__.plane.size)
     location = mathutils.Vector(data['location'])
     normal = mathutils.Vector(data['normal'])
     rotation = normal.to_track_quat('Z', 'Y')
 
     # create plane:
     bpy.ops.mesh.primitive_plane_add(
-        size=2.0,
+        size=size,
         location=location
     )
     bpy.context.active_object.rotation_mode = 'QUATERNION'

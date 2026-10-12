@@ -23,7 +23,7 @@ namespace vis
     template <typename value_type>
     struct box
     {
-        std::vector<vis::types::point<value_type, 3>> vertices;
+        std::vector<vis::types::vector<value_type, 3>> vertices;
     };
     template <typename value_type>
     struct surface : vis::dataset_3D<value_type>
@@ -54,7 +54,38 @@ namespace vis
             }
         }
 
-        std::vector<vis::types::point<value_type, 3>> points;
+        std::vector<vis::types::vector<value_type, 3>> points;
+    };
+    template <typename value_type>
+    struct mesh
+    {
+
+    };
+
+    template <typename value_type>
+    struct empty_base
+    {
+        vis::types::vector<value_type, 3> location;
+        float size;
+    };
+    template <typename value_type>
+    struct marker : empty_base<value_type>
+    {
+    };
+    template <typename value_type>
+    struct arrow : empty_base<value_type>
+    {
+        vis::types::vector<value_type, 3> direction;
+    };
+    template <typename value_type>
+    struct axes : empty_base<value_type>
+    {
+        vis::types::matrix<value_type, 3, 3> basis;
+    };
+    template <typename value_type>
+    struct sphere : empty_base<value_type>
+    {
+        float& radius = this->size;
     };
 
     class visualise_geometry : public visualise_base<frame>
@@ -79,9 +110,10 @@ namespace vis
         // #endif
         }
 
+    /// Empty/dimensionless objects.
     public:
-        template <typename point_type>
-        void add_marker(const point_type& location)
+        template <typename vector_type>
+        void add_marker(const vector_type& location)
         {
             visualise_base::begin_operation("add_marker");
 
@@ -92,8 +124,8 @@ namespace vis
             visualise_base::end_operation();
         }
 
-        template <typename point_type, typename matrix_type>
-        void add_axes(const point_type& location,
+        template <typename vector_type, typename matrix_type>
+        void add_axes(const vector_type& location,
                       const matrix_type& basis)
         {
             visualise_base::begin_operation("add_axes");
@@ -106,6 +138,19 @@ namespace vis
                 { basis(2, 0), basis(2, 1), basis(2, 2) }
             };
             io::json::write(data, _active_dir, "data", 4);
+
+            visualise_base::end_operation();
+        }
+
+        template <typename vector_type>
+        void add_arrow(const vector_type& location,
+                       const vector_type& direction)
+        {
+            visualise_base::begin_operation("add_arrow");
+
+            nlohmann::json data;
+            data["location"] = location;
+            data["direction"] = direction;
 
             visualise_base::end_operation();
         }
@@ -123,8 +168,8 @@ namespace vis
             visualise_base::end_operation();
         }
 
-        template <typename point_type>
-        void add_points(const std::vector<point_type>& points)
+        template <typename vector_type>
+        void add_points(const std::vector<vector_type>& points)
         {
             vis::point_cloud point_cloud;
             point_cloud.points = points;
@@ -133,8 +178,10 @@ namespace vis
             visualise_geometry::add_points(point_cloud);
         }
 
-        template <typename point_type>
-        void add_mesh(const std::vector<point_type>& points,
+    /// Solid objects.
+    public:
+        template <typename vector_type>
+        void add_mesh(const std::vector<vector_type>& points,
                       const std::vector<std::array<types::id, 3>>& tri_indices)
         {
             visualise_base::begin_operation("add_mesh_from_tris");
@@ -145,8 +192,8 @@ namespace vis
             visualise_base::end_operation();
         }
 
-        template <typename point_type>
-        void add_mesh(const std::vector<point_type>& points,
+        template <typename vector_type>
+        void add_mesh(const std::vector<vector_type>& points,
                       const std::vector<std::array<types::id, 4>>& quad_indices)
         {
             visualise_base::begin_operation("add_mesh_from_quads");
@@ -157,9 +204,9 @@ namespace vis
             visualise_base::end_operation();
         }
 
-        template <typename point_type>
-        void add_plane(const point_type& location,
-                       const point_type& normal)
+        template <typename vector_type>
+        void add_plane(const vector_type& location,
+                       const vector_type& normal)
         {
             visualise_base::begin_operation("add_plane");
 
