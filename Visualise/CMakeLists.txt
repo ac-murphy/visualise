@@ -25,16 +25,17 @@ target_include_directories(Visualise PUBLIC
 )
 target_link_libraries(Visualise)
 
+option(PYTHON_TEST_MODE "Run Python with source files" ON)
 set(PYTHON_SOURCE_DIR "${PROJECT_SOURCE_DIR}/Python/src/")
 set(PYTHON_EXE_DIR "${PROJECT_SOURCE_DIR}/Python/.venv/Scripts/")
 set(PYTHON_DIST_DIR "${PROJECT_SOURCE_DIR}/Python/dist/")
-option(PYTHON_TEST_MODE "Run Python with source files" ON)
 target_compile_definitions(Visualise PUBLIC
         PYTHON_EXE_DIR="${PYTHON_EXE_DIR}"
         PYTHON_DIR="${PROJECT_SOURCE_DIR}/Python/"
         PYTHON_SOURCE_DIR="${PYTHON_SOURCE_DIR}"
         PYTHON_DIST_DIR="${PYTHON_DIST_DIR}"
         PYTHON_TEST_MODE=$<BOOL:${PYTHON_TEST_MODE}>
+        SETTINGS_DIR="${PROJECT_SOURCE_DIR}/Settings/"
 )
 
 message(STATUS "Running Python with source files: ${PYTHON_TEST_MODE}")

@@ -3,8 +3,8 @@ from pathlib import Path
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from matplotlib.figure import Figure
 from enum import Enum
-import IO.JSON as json
-import IO.BIN as bin
+import system.json as json
+import system.bin as bin
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -13,6 +13,7 @@ matplotlib.use("QtAgg")
 
 __metadata__ = {}
 __functions__ = {}
+__defaults__ = {}
 __fig__: Figure
 __ax__: Axes3D
 
@@ -42,7 +43,8 @@ def add_plot_3D(data_path: Path):
     y_values = bin.read(data_path/'y_values', n_cols=1, dtype=np.float32)
 
     data = json.read(data_path/'data')
-    storage_order = data_storage_order(data.get('data_storage_order', 0))
+    storage_order = data_storage_order(data.get('data_storage_order', __defaults__['data_storage_order']))
+    colour_map = data.get('colour_map', __defaults__['colour_map'])
     if storage_order == data_storage_order.row_major:
         Z_values = bin.read(data_path/'z_values', n_cols=len(x_values), dtype=np.float32)
     else:
@@ -52,7 +54,7 @@ def add_plot_3D(data_path: Path):
     print(X_values.shape, Y_values.shape, Z_values.shape)
 
     # draw surface:
-    __ax__.plot_surface(X_values, Y_values, Z_values, cmap='viridis')
+    __ax__.plot_surface(X_values, Y_values, Z_values, cmap=colour_map)
 
 
 def create_canvas(metadata):
@@ -116,5 +118,7 @@ def main(args: Namespace):
 
     global __metadata__
     __metadata__ = json.read(args.input/'metadata')
+    global __defaults__
+    __defaults__ = json.read(args.settings/'plotting'/'defaults')
 
     run_all(args.input)

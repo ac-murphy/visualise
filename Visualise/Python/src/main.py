@@ -7,6 +7,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+import system.json as json
 
 if __name__ == "__main__":
     # 1. read command line arguments:
@@ -17,6 +18,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', type=str)
     parser.add_argument('--input', type=Path)
+    parser.add_argument('--settings', type=Path)
     args = parser.parse_args(argv)
 
     # 2. decide whether to use matplotlib or blender

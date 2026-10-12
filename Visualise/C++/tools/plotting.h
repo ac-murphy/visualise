@@ -28,10 +28,10 @@ namespace vis
     template <typename value_type>
     struct plot_base
     {
-        std::array<float, 4> rgba;
-        std::string style;
-        std::string label;
-        vis::storage_order data_storage_order;
+        std::array<float, 4> rgba = { 1.0f, 1.0f, 1.0f, 1.0f };
+        std::string style = "";
+        std::string label = "";
+        vis::storage_order data_storage_order = vis::storage_order::row_major;
     };
     template <typename value_type>
     struct plot_2D : plot_base<value_type>
@@ -56,14 +56,14 @@ namespace vis
         void _run() const override
         {
         #if PYTHON_TEST_MODE == 1
-            sys::run_cmd({ PYTHON_EXE_DIR"python.exe", PYTHON_SOURCE_DIR"main.py",
-                           "--mode", "plotting",
-                           "--input", _dir.string() });
+            std::string exe_line = PYTHON_EXE_DIR"python.exe " PYTHON_SOURCE_DIR"main.py";
         #else
-            sys::run_cmd({ PYTHON_DIST_DIR"/Visualise/Visualise.exe",
-                           "--mode", "plotting",
-                           "--input", _dir.string() });
+            std::string exe_line = PYTHON_DIST_DIR"/Visualise/Visualise.exe";
         #endif
+            sys::run_cmd({ exe_line,
+                           "--mode", "plotting",
+                           "--input", _dir.string(),
+                           "--settings", SETTINGS_DIR });
         }
 
     public:

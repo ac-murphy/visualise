@@ -94,21 +94,13 @@ namespace vis
     private:
         void _run() const override
         {
-        // #if PYTHON_TEST_MODE == 1
             sys::run_cmd({ "blender",
                            (_dir / "vis.blend").string(),
                            "--python", PYTHON_SOURCE_DIR"main.py",
                            "--",
                            "--mode", "geometric",
-                           "--input", _dir.string() });
-        // #else
-        //     sys::run_cmd({ "blender",
-        //                    (_dir / "vis.blend").string(),
-        //                    "--python", PYTHON_DIR"blender_launcher.py",
-        //                    "--",
-        //                    "--mode", "3D",
-        //                    "--input", _dir.string() });
-        // #endif
+                           "--input", _dir.string(),
+                           "--settings", SETTINGS_DIR });
         }
 
     /// Empty/dimensionless objects.

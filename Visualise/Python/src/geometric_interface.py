@@ -1,17 +1,16 @@
 from argparse import Namespace
 from pathlib import Path
-from types import SimpleNamespace
-from geometric.defaults import __defaults__
 import geometric.blender_interface as bpyi
 import geometric.blender_shaders as bpys
-import IO.JSON as json
-import IO.BIN as bin
+import system.json as json
+import system.bin as bin
 import numpy as np
 import mathutils
 import bpy
 
 __metadata__ = {}
 __functions__ = {}
+__defaults__ = {}
 
 def register(func):
     __functions__[func.__name__] = func
@@ -20,7 +19,7 @@ def register(func):
 @register
 def add_marker(*, data_path: Path):
     data = json.read(data_path/'data')
-    size = data.get('size', __defaults__.empty_obj.size)
+    size = data.get('size', __defaults__['empty_obj']['size'])
     location = mathutils.Vector(data['location'])
 
     bpy.ops.object.empty_add(
@@ -32,7 +31,7 @@ def add_marker(*, data_path: Path):
 @register
 def add_axes(*, data_path: Path):
     data = json.read(data_path/'data')
-    size = data.get('size', __defaults__.empty_obj.size)
+    size = data.get('size', __defaults__['empty_obj']['size'])
     location = mathutils.Vector(data['location'])
     rotation = mathutils.Matrix(data['basis'])
 
@@ -46,7 +45,7 @@ def add_axes(*, data_path: Path):
 @register
 def add_arrow(*, data_path: Path):
     data = json.read(data_path/'data')
-    size = data.get('size', __defaults__.empty_obj.size)
+    size = data.get('size', __defaults__['empty_obj']['size'])
     location = mathutils.Vector(data['location'])
     direction = mathutils.Vector(data['direction'])
 
@@ -62,7 +61,7 @@ def add_arrow(*, data_path: Path):
 def add_points(*, data_path: Path):
     points = bin.read(data_path/'points', n_cols=3, dtype=np.float32)
     data = json.read(data_path/'data')
-    size = data.get('size', __defaults__.empty_obj.size)
+    size = data.get('size', __defaults__['empty_obj']['size'])
 
     points_obj = bpyi.render_vertices(points)
     bpys.apply_point_cloud_shader(points_obj) # todo: pass <size> into apply_point_cloud_shader()
@@ -85,7 +84,7 @@ def add_mesh_from_quads(*, data_path: Path):
 def add_plane(*, data_path: Path):
     # variables:
     data = json.read(data_path/'data')
-    size = data.get('size', __defaults__.plane.size)
+    size = data.get('size', __defaults__['plane']['size'])
     location = mathutils.Vector(data['location'])
     normal = mathutils.Vector(data['normal'])
     rotation = normal.to_track_quat('Z', 'Y')
@@ -130,5 +129,7 @@ def main(args: Namespace):
 
     global __metadata__
     __metadata__ = json.read(args.input/'metadata')
+    global __defaults__
+    __defaults__ = json.read(args.settings/'geometry'/'defaults')
 
     run_all(args.input)
