@@ -6,7 +6,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import interface as bpyi
+import blender_interface as bpyi
 import bpy
 
 class point_cloud:

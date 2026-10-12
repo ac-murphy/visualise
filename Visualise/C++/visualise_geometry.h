@@ -21,7 +21,7 @@ namespace vis
     {
     };
 
-    class visualise_3D : public visualise_base<frame>
+    class visualise_geometry : public visualise_base<frame>
     {
     private:
         void _run() const override
@@ -31,7 +31,7 @@ namespace vis
                            (_dir / "vis.blend").string(),
                            "--python", PYTHON_SOURCE_DIR"main.py",
                            "--",
-                           "--mode", "3D",
+                           "--mode", "geometric",
                            "--input", _dir.string() });
         // #else
         //     sys::run_cmd({ "blender",
@@ -94,7 +94,7 @@ namespace vis
             point_cloud.points = points;
             point_cloud.rgba = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-            visualise_3D::add_points(point_cloud);
+            visualise_geometry::add_points(point_cloud);
         }
 
         template <typename point_type>

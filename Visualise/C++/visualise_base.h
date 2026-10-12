@@ -13,9 +13,14 @@ namespace vis
     {
         std::string name;
     };
+    struct operation_base
+    {
+        std::string name;
+        std::string type;
+    };
 
-    template <typename frame_type = frame_base>
-    requires (std::is_base_of_v<frame_base, frame_type>)
+    template <typename frame_type = frame_base, typename operation_type = operation_base>
+    requires (std::is_base_of_v<frame_base, frame_type> && std::is_base_of_v<operation_base, operation_type>)
     class visualise_base
     {
     public:
@@ -98,7 +103,7 @@ namespace vis
                 throw std::runtime_error("visualise_base::begin_operation \"operation already initialised\"");
 
             // Create new operation instance.
-            _operation = vis::operation{};
+            _operation = operation_type{};
             _operation.type = type;
             _operation_open = true;
 
@@ -160,8 +165,7 @@ namespace vis
     protected:
         uint32_t _frame_count = 0;
         uint32_t _operation_count = 0;
-        vis::operation _operation;
-        // vis::frame _frame;
+        operation_type _operation;
         frame_type _frame;
         std::filesystem::path _dir;
         std::filesystem::path _active_dir = _dir;

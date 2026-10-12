@@ -23,21 +23,6 @@ namespace vis
         bool legend_visible;
     };
 
-    template <typename value_type, typename container_type>
-    std::vector<value_type> vector_cast(const container_type& container)
-    {
-        if constexpr (std::same_as<container_type, std::vector<value_type>>)
-        {
-            return container;
-        }
-
-        std::vector<value_type> result;
-        result.reserve(container.size());
-        for (int32_t i = 0; i < container.size(); ++i)
-            result.push_back(static_cast<value_type>(container.data()[i]));
-        return result;
-    }
-
     template <typename value_type>
     struct plot_base
     {
@@ -46,7 +31,6 @@ namespace vis
         std::string label;
         vis::storage_order data_storage_order;
     };
-
     template <typename value_type>
     struct plot_2D : plot_base<value_type>
     {
@@ -79,7 +63,7 @@ namespace vis
         {}
     };
 
-    class visualise_2D : public visualise_base<canvas>
+    class visualise_plotting : public visualise_base<canvas>
     {
     private:
         void _end_frame(nlohmann::json& metadata) const override
@@ -92,11 +76,11 @@ namespace vis
         {
         #if PYTHON_TEST_MODE == 1
             sys::run_cmd({ PYTHON_EXE_DIR"python.exe", PYTHON_SOURCE_DIR"main.py",
-                           "--mode", "2D",
+                           "--mode", "plotting",
                            "--input", _dir.string() });
         #else
             sys::run_cmd({ PYTHON_DIST_DIR"/Visualise/Visualise.exe",
-                           "--mode", "2D",
+                           "--mode", "plotting",
                            "--input", _dir.string() });
         #endif
         }
@@ -106,7 +90,7 @@ namespace vis
         void add_plot(const vis::plot_2D<value_type>& plot)
         {
             visualise_base::begin_operation("add_plot_2D");
-            visualise_2D::_use_projection(dim_2);
+            visualise_plotting::_use_projection(dim_2);
 
             io::bin::write(plot.x_values, _active_dir, "x_values");
             io::bin::write(plot.y_values, _active_dir, "y_values");
@@ -127,14 +111,14 @@ namespace vis
             plot.x_values = x;
             plot.y_values = y;
 
-            visualise_2D::add_plot(plot);
+            visualise_plotting::add_plot(plot);
         }
 
         template <typename value_type>
         void add_plot(const vis::plot_3D<value_type>& plot)
         {
             visualise_base::begin_operation("add_plot_3D");
-            visualise_2D::_use_projection(dim_3);
+            visualise_plotting::_use_projection(dim_3);
 
             io::bin::write(plot.x_values, _active_dir, "x_values");
             io::bin::write(plot.y_values, _active_dir, "y_values");
@@ -160,7 +144,7 @@ namespace vis
             plot.z_values = z;
             plot.data_storage_order = order;
 
-            visualise_2D::add_plot(plot);
+            visualise_plotting::add_plot(plot);
         }
 
     public:
@@ -196,7 +180,7 @@ namespace vis
             // If the projection has been set, throw an error if there is a clash.
             if (_frame.projection != projection)
             {
-                throw std::runtime_error("visualise_2D::_use_projection \"all plots on the same canvas must use the same projection\"");
+                throw std::runtime_error("visualise_plotting::_use_projection \"all plots on the same canvas must use the same projection\"");
             }
         }
     };

@@ -1,3 +1,3 @@
 #pragma once
-#include "C++/visualise_2D.h"
-#include "C++/visualise_3D.h"
+#include "C++/visualise_plotting.h"
+#include "C++/visualise_geometry.h"
