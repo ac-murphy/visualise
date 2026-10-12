@@ -20,6 +20,7 @@ add_library(Visualise STATIC ${SOURCES}
 
 target_include_directories(Visualise PUBLIC
         ${PROJECT_SOURCE_DIR}/
+        ${PROJECT_SOURCE_DIR}/C++/
         ${PROJECT_SOURCE_DIR}/Dependencies/Json/single_include/nlohmann
 )
 target_link_libraries(Visualise)

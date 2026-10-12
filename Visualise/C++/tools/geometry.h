@@ -2,18 +2,19 @@
 #include <filesystem>
 #include <system_error>
 
-#include "visualise_base.h"
 #include "json.hpp"
-#include "system.h"
+#include "framework/visualise_base.h"
 #include "framework/types.h"
-#include "IO/BIN.h"
-#include "IO/JSON.h"
+#include "system/system.h"
+#include "system/bin.h"
+#include "system/json.h"
 
 namespace vis
 {
     struct point_cloud
     {
-        std::vector<types::point_3D> points;
+        // std::vector<types::point_3D> points;
+        converting::vector<std::array<float, 3>> points;
         std::array<float, 4> rgba;
     };
 
@@ -21,7 +22,7 @@ namespace vis
     {
     };
 
-    class visualise_geometry : public visualise_base<frame>
+    class geometry : public visualise_base<frame>
     {
     private:
         void _run() const override
@@ -82,7 +83,7 @@ namespace vis
             data["rgba"] = point_cloud.rgba;
             io::json::write(data, _active_dir, "data", 4);
 
-            io::bin::write(point_cloud.points, _active_dir, "points");
+            io::bin::write(point_cloud.points.to_std(), _active_dir, "points");
 
             visualise_base::end_operation();
         }
@@ -94,7 +95,7 @@ namespace vis
             point_cloud.points = points;
             point_cloud.rgba = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-            visualise_geometry::add_points(point_cloud);
+            geometry::add_points(point_cloud);
         }
 
         template <typename point_type>

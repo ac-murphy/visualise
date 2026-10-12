@@ -1,7 +1,8 @@
 #pragma once
-#include "visualise_base.h"
-#include "system.h"
-#include "IO/BIN.h"
+#include "framework/converting_types.h"
+#include "framework/visualise_base.h"
+#include "system/system.h"
+#include "system/BIN.h"
 
 namespace vis
 {
@@ -34,33 +35,12 @@ namespace vis
     template <typename value_type>
     struct plot_2D : plot_base<value_type>
     {
-        std::vector<value_type> x_values, y_values;
-
-        plot_2D() = default;
-        template <typename container_x_type,
-                  typename container_y_type>
-        plot_2D(const container_x_type& x_values,
-                const container_y_type& y_values)
-        : x_values(vis::vector_cast<value_type>(x_values)),
-          y_values(vis::vector_cast<value_type>(y_values))
-        {}
+        vis::converting::vector<value_type> x_values, y_values;
     };
     template <typename value_type>
     struct plot_3D : plot_base<value_type>
     {
-        std::vector<value_type> x_values, y_values, z_values;
-
-        plot_3D() = default;
-        template <typename container_x_type,
-                  typename container_y_type,
-                  typename container_z_type>
-        plot_3D(const container_x_type& x_values,
-                const container_y_type& y_values,
-                const container_z_type& z_values)
-        : x_values(vis::vector_cast<value_type>(x_values)),
-          y_values(vis::vector_cast<value_type>(y_values)),
-          z_values(vis::vector_cast<value_type>(z_values))
-        {}
+        converting::vector<value_type> x_values, y_values, z_values;
     };
 
     class visualise_plotting : public visualise_base<canvas>
@@ -92,8 +72,8 @@ namespace vis
             visualise_base::begin_operation("add_plot_2D");
             visualise_plotting::_use_projection(dim_2);
 
-            io::bin::write(plot.x_values, _active_dir, "x_values");
-            io::bin::write(plot.y_values, _active_dir, "y_values");
+            io::bin::write(plot.x_values.to_std(), _active_dir, "x_values");
+            io::bin::write(plot.y_values.to_std(), _active_dir, "y_values");
 
             nlohmann::json data;
             data["label"] = plot.label;
@@ -120,9 +100,9 @@ namespace vis
             visualise_base::begin_operation("add_plot_3D");
             visualise_plotting::_use_projection(dim_3);
 
-            io::bin::write(plot.x_values, _active_dir, "x_values");
-            io::bin::write(plot.y_values, _active_dir, "y_values");
-            io::bin::write(plot.z_values, _active_dir, "z_values");
+            io::bin::write(plot.x_values.to_std(), _active_dir, "x_values");
+            io::bin::write(plot.y_values.to_std(), _active_dir, "y_values");
+            io::bin::write(plot.z_values.to_std(), _active_dir, "z_values");
 
             nlohmann::json data;
             data["label"] = plot.label;
