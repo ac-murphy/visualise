@@ -21,11 +21,11 @@ if __name__ == "__main__":
 
     # 2. decide whether to use matplotlib or blender
     match args.mode:
-        case '3D':
-            import visualise_3d
-            visualise_3d.main(args)
-        case '2D':
-            import visualise_2d
-            visualise_2d.main(args)
+        case 'geometric':
+            import geometric_interface
+            geometric_interface.main(args)
+        case 'plotting':
+            import plotting_interface
+            plotting_interface.main(args)
         case _:
             raise ValueError(f'__main__ \"unsupported mode \'{args.mode}\'\"')

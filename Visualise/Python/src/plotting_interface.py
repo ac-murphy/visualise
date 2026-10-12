@@ -78,15 +78,12 @@ def create_canvas(metadata):
     __fig__.canvas.manager.set_window_title(canvas_name)
     __fig__.suptitle(canvas_name)
 
-
 def finish_canvas(metadata):
     canvas_legend_visible = metadata['legend_visible']
 
     # other:
     if canvas_legend_visible:
         __ax__.legend()
-
-
 
 def run_all(data_path: Path):
 
