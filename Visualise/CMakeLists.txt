@@ -15,8 +15,7 @@ file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/*.h" "${PROJECT_SOURCE_DIR}/*.c
 list(FILTER SOURCES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/Dependencies")
 list(FILTER SOURCES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/Python")
 
-add_library(Visualise STATIC ${SOURCES}
-        C++/framework/lists.h)
+add_library(Visualise STATIC ${SOURCES})
 
 target_include_directories(Visualise PUBLIC
         ${PROJECT_SOURCE_DIR}/
