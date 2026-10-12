@@ -3,6 +3,10 @@
 #include "framework/visualise_base.h"
 #include "system/system.h"
 #include "system/BIN.h"
+#include "include_guard.h"
+#include "visualise_base.h"
+#include "system.h"
+#include "IO/BIN.h"
 
 namespace vis
 {

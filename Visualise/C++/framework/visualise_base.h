@@ -3,6 +3,7 @@
 #include <iostream>
 #include <system_error>
 
+#include "include_guard.h"
 #include "json.hpp"
 #include "system/json.h"
 
@@ -17,6 +18,42 @@ namespace vis
         std::string name;
         std::string type;
     };
+    template <typename value_type>
+    struct dataset_2D
+    {
+        std::vector<value_type> x, y;
+
+
+        template <typename container_x_type,
+                  typename container_y_type>
+        dataset_2D(const container_x_type& x,
+                   const container_y_type& y)
+        : x(vis::vector_cast<value_type>(x)),
+          y(vis::vector_cast<value_type>(y))
+        {}
+    };
+    template <typename value_type>
+    struct dataset_3D
+    {
+        std::vector<value_type> x, y, z;
+
+        dataset_3D() = default;
+        template <typename container_x_type,
+                  typename container_y_type,
+                  typename container_z_type>
+        dataset_3D(const container_x_type& x,
+                   const container_y_type& y,
+                   const container_z_type& z)
+        : x(vis::vector_cast<value_type>(x)),
+          y(vis::vector_cast<value_type>(y)),
+          z(vis::vector_cast<value_type>(z))
+        {}
+    };
+
+    inline size_t to_linear_index(const size_t& i, const size_t& j, const size_t& I, const size_t& J)
+    {
+        return i * J + j;
+    }
 
     template <typename frame_type = frame_base, typename operation_type = operation_base>
     requires (std::is_base_of_v<frame_base, frame_type> && std::is_base_of_v<operation_base, operation_type>)

@@ -2,6 +2,8 @@
 #include <array>
 #include <iostream>
 
+#include "include_guard.h"
+
 namespace vis::concepts
 {
     template <typename T> concept container = std::ranges::range<T> &&
@@ -15,26 +17,26 @@ namespace vis::concepts
     template <typename T> concept supports_linear_parentheses_index =
         requires(T& container, const T& const_container, size_t i)
         {
-            { container(i) } -> std::same_as<typename T::value_type&>;
-            { const_container(i) } -> std::same_as<const typename T::value_type&>;
+            { container(i) } -> std::convertible_to<std::remove_cvref_t<typename T::value_type>>;
+            // { const_container(i) } -> std::same_as<const typename T::value_type&>;
         };
     template <typename T> concept supports_linear_bracket_index =
         requires(T& container, const T& const_container, size_t i)
         {
-            { container[i] } -> std::same_as<typename T::value_type&>;
-            { const_container[i] } -> std::same_as<const typename T::value_type&>;
+            { container[i] } -> std::convertible_to<std::remove_cvref_t<typename T::value_type>>;
+            // { const_container[i] } -> std::same_as<const typename T::value_type&>;
         };
     template <typename T> concept supports_multidimensional_parentheses_index =
         requires(T& container, const T& const_container, size_t i, size_t j)
         {
-            { container(i, j) } -> std::same_as<typename T::value_type&>;
-            { const_container(i, j) } -> std::same_as<const typename T::value_type&>;
+            { container(i, j) } -> std::convertible_to<std::remove_cvref_t<typename T::value_type>>;
+            // { const_container(i, j) } -> std::same_as<const typename T::value_type&>;
         };
     template <typename T> concept supports_multidimensional_bracket_index =
         requires(T& container, const T& const_container, size_t i, size_t j)
         {
-            { container[i][j] } -> std::same_as<typename T::value_type&>;
-            { const_container[i][j] } -> std::same_as<const typename T::value_type&>;
+            { container[i][j] } -> std::convertible_to<std::remove_cvref_t<typename T::value_type>>;
+            // { const_container[i][j] } -> std::same_as<const typename T::value_type&>;
         };
     template <typename T> concept supports_linear_index = supports_linear_parentheses_index<T> || supports_linear_bracket_index<T>;
     template <typename T> concept supports_multidimensional_index = supports_multidimensional_parentheses_index<T> || supports_multidimensional_bracket_index<T>;
@@ -71,6 +73,10 @@ namespace vis::concepts
 namespace vis::types
 {
     using point_3D = std::array<float, 3>;
+    template <typename value_type, size_t dimension>
+    using vector = std::array<value_type, dimension>;
+    template <typename value_type, size_t rows, size_t columns>
+    using matrix = std::array<std::array<value_type, columns>, rows>;
     using id = uint32_t;
 }
 
@@ -147,11 +153,34 @@ namespace vis
         throw std::runtime_error(std::format("vector_cast \"could not convert \'{}\' to \'std::vector<{}>\'\"",
                                              typeid(container_type).name(),
                                              typeid(value_type).name()));
+    }
 
-        // result.reserve(container.size());
-        // for (int32_t i = 0; i < container.size(); ++i)
-        //     result.push_back(static_cast<value_type>(container.data()[i]));
-        // return result;
+    template <typename container_type>
+    requires (vis::concepts::supports_linear_index<container_type>)
+    auto index(container_type& container, const size_t& i)
+    {
+        if constexpr (vis::concepts::supports_linear_bracket_index<container_type>)
+        {
+            return container[i];
+        }
+        else if constexpr (vis::concepts::supports_linear_parentheses_index<container_type>)
+        {
+            return container(i);
+        }
+    }
+
+    template <typename container_type>
+    requires (vis::concepts::supports_multidimensional_index<container_type>)
+    auto index(container_type& container, const size_t& i, const size_t& j)
+    {
+        if constexpr (vis::concepts::supports_multidimensional_bracket_index<container_type>)
+        {
+            return container[i][j];
+        }
+        else if constexpr (vis::concepts::supports_multidimensional_parentheses_index<container_type>)
+        {
+            return container(i, j);
+        }
     }
 
     template <typename container_type>

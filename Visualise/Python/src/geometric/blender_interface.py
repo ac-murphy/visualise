@@ -79,11 +79,11 @@ def render_vertices(points: np.ndarray, parent = None) -> bpy.types.Object:
     return obj
 
 def render_edges(): ...
-def render_faces(points: np.ndarray, tri_indices, parent = None) -> bpy.types.Object:
+def render_faces(points: np.ndarray, face_idx_list, parent = None) -> bpy.types.Object:
     # initialise:
     obj, mesh = _create_empty_obj('mesh', parent)
 
-    mesh.from_pydata(points, [], tri_indices)
+    mesh.from_pydata(points, [], face_idx_list)
     mesh.update()
     return obj
 
