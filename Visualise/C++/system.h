@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "include_guard.h"
+
 namespace vis::sys
 {
     inline void run_cmd(const std::vector<std::string>& args) {

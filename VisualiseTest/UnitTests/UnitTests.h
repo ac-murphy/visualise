@@ -11,14 +11,14 @@ TEST_F(UnitTest, Test_Geometric)
 
     std::array<float, 3> point{1.0f, 1.0f, 1.0f};
     std::vector<std::array<float, 3>> points{
-        { -1.0f, -1.0f, -1.0f },
-        {  1.0f, -1.0f, -1.0f },
-        { -1.0f,  1.0f, -1.0f },
-        {  1.0f,  1.0f, -1.0f },
-        { -1.0f, -1.0f,  1.0f },
-        {  1.0f, -1.0f,  1.0f },
-        { -1.0f,  1.0f,  1.0f },
-        {  1.0f,  1.0f,  1.0f }
+        { 1.0f, 0.0f, 0.0f },
+        { 1.0f, 0.0f, 1.0f },
+        { 1.0f, 1.0f, 0.0f },
+        { 1.0f, 1.0f, 1.0f },
+        { 0.0f, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 1.0f },
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 1.0f }
     };
 
     Eigen::Matrix3f basis { { 0.0f, -1.0f, 0.0f },
@@ -32,21 +32,51 @@ TEST_F(UnitTest, Test_Geometric)
         { 0, 7, 6 }
     };
 
-    vis.begin_frame("first-scene");
-        vis.add_points(points);
-        vis.add_marker(point);
+    constexpr int N = 100;
+    constexpr float dx = 0.1f;
+    constexpr float dy = 0.1f;
+    Eigen::VectorXf X(N);
+    Eigen::VectorXf Y(N);
+    Eigen::MatrixXf Z(N, N);
+
+    for (size_t i = 0; i < N; i++)
+    {
+        X(i) = i * dx;
+        Y(i) = i * dy;
+    }
+
+    auto f = [](const float& x){ return std::sin(x); };
+    auto g = [](const float& x){ return std::cos(x); };
+    for (size_t i = 0; i < N; i++)
+        for (size_t j = 0; j < N; j++)
+            Z(i, j) = f(i * dx) + g(j * dy);
+
+    vis.begin_frame("surface");
+    {
+        vis::surface<float> surface(X, Y, Z);
+        vis.add_surface(surface);
+
+        vis::box<float> box;
+        box.vertices = points;
+        vis.add_box(box);
+    }
     vis.end_frame();
 
-    vis.begin_frame("second-scene");
-        vis.add_marker(point);
-        vis.add_plane(point, std::array{ 1.0f, 1.0f, 1.0f });
-        vis.add_axes(point, basis);
-    vis.end_frame();
-
-    vis.begin_frame("third-scene");
-        vis.add_points(points);
-        vis.add_mesh(points, tri_indices);
-    vis.end_frame();
+    // vis.begin_frame("first-scene");
+    //     vis.add_points(points);
+    //     vis.add_marker(point);
+    // vis.end_frame();
+    //
+    // vis.begin_frame("second-scene");
+    //     vis.add_marker(point);
+    //     vis.add_plane(point, std::array{ 1.0f, 1.0f, 1.0f });
+    //     vis.add_axes(point, basis);
+    // vis.end_frame();
+    //
+    // vis.begin_frame("third-scene");
+    //     vis.add_points(points);
+    //     vis.add_mesh(points, tri_indices);
+    // vis.end_frame();
 
     vis.run();
 }

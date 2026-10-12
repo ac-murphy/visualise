@@ -47,11 +47,18 @@ def add_points(*, data_path: Path):
     bpys.apply_point_cloud_shader(points_obj)
 
 @register
-def add_mesh(*, data_path: Path):
+def add_mesh_from_tris(*, data_path: Path):
     points =      bin.read(data_path/'points',      n_cols=3, dtype=np.float32)
     tri_indices = bin.read(data_path/'tri_indices', n_cols=3, dtype=np.uint32)
 
     mesh_obj = bpyi.render_faces(points, tri_indices)
+
+@register
+def add_mesh_from_quads(*, data_path: Path):
+    points =       bin.read(data_path/'points',       n_cols=3, dtype=np.float32)
+    quad_indices = bin.read(data_path/'quad_indices', n_cols=4, dtype=np.uint32)
+
+    mesh_obj = bpyi.render_faces(points, quad_indices)
 
 @register
 def add_plane(*, data_path: Path):

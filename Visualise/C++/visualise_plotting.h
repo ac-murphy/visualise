@@ -1,4 +1,5 @@
 #pragma once
+#include "include_guard.h"
 #include "visualise_base.h"
 #include "system.h"
 #include "IO/BIN.h"
