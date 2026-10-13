@@ -4,7 +4,7 @@
 #include <format>
 #include <stdexcept>
 
-#include "framework/types.h"
+#include "framework/type_rules.h"
 
 namespace vis::converting
 {

@@ -63,7 +63,7 @@ namespace vis
             sys::run_cmd({ exe_line,
                            "--mode", "plotting",
                            "--input", _dir.string(),
-                           "--settings", SETTINGS_DIR });
+                           "--settings", SETTINGS_DIR"plotting/" });
         }
 
     public:

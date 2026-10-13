@@ -124,12 +124,12 @@ def run_all(data_path: Path):
         bpyi.set_collection_visible(frame_layer_collection, True,  frame=i + 1)
         bpyi.set_collection_visible(frame_layer_collection, False, frame=i + 2)
 
-def main(args: Namespace):
+def main(data_path: Path, settings_path: Path):
     bpyi.init()
 
     global __metadata__
-    __metadata__ = json.read(args.input/'metadata')
+    __metadata__ = json.read(data_path/'metadata')
     global __defaults__
-    __defaults__ = json.read(args.settings/'geometry'/'defaults')
+    __defaults__ = json.read(settings_path/'defaults')
 
-    run_all(args.input)
+    run_all(data_path)

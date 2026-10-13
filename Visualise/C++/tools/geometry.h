@@ -5,7 +5,7 @@
 #include "include_guard.h"
 #include "json.hpp"
 #include "framework/visualise_base.h"
-#include "framework/types.h"
+#include "framework/type_rules.h"
 #include "system/system.h"
 #include "system/bin.h"
 #include "system/json.h"
@@ -98,9 +98,9 @@ namespace vis
                            (_dir / "vis.blend").string(),
                            "--python", PYTHON_SOURCE_DIR"main.py",
                            "--",
-                           "--mode", "geometric",
+                           "--mode", "geometry",
                            "--input", _dir.string(),
-                           "--settings", SETTINGS_DIR });
+                           "--settings", SETTINGS_DIR"geometry/" });
         }
 
     /// Empty/dimensionless objects.
