@@ -214,6 +214,9 @@ namespace vis::converting
         std::vector<T> _data;
     };
 
+    template <typename T, size_t M, size_t N>
+    using matrix = array<array<T, M>, N>;
+
     template <typename T, size_t N>
     bool operator==(const vis::converting::array<T, N>& array, const std::array<T, N>& check)
     {

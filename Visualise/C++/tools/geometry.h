@@ -6,6 +6,7 @@
 #include "json.hpp"
 #include "framework/visualise_base.h"
 #include "framework/type_rules.h"
+#include "framework/converting_types.h"
 #include "system/system.h"
 #include "system/bin.h"
 #include "system/json.h"
@@ -55,7 +56,7 @@ namespace vis
             }
         }
 
-        std::vector<vis::types::vector<value_type, 3>> points;
+        std::vector<std::array<value_type, 3>> points;
     };
     template <typename value_type>
     struct mesh
@@ -66,7 +67,7 @@ namespace vis
     template <typename value_type>
     struct empty_base
     {
-        vis::types::vector<value_type, 3> location;
+        vis::converting::array<value_type, 3> location;
         float size;
     };
     template <typename value_type>
@@ -76,12 +77,12 @@ namespace vis
     template <typename value_type>
     struct arrow : empty_base<value_type>
     {
-        vis::types::vector<value_type, 3> direction;
+        vis::converting::array<value_type, 3> direction;
     };
     template <typename value_type>
     struct axes : empty_base<value_type>
     {
-        vis::types::matrix<value_type, 3, 3> basis;
+        vis::converting::matrix<value_type, 3, 3> basis;
     };
     template <typename value_type>
     struct sphere : empty_base<value_type>
