@@ -169,6 +169,7 @@ namespace vis
         {
             nlohmann::json metadata;
             metadata["frame_count"] = _frame_count;
+            this->_end_vis(metadata);
             io::json::write(metadata, _dir, "metadata", 4);
 
             if (_frame_count == 0)
@@ -179,6 +180,7 @@ namespace vis
 
     protected:
         void virtual _run() const {}
+        void virtual _end_vis(nlohmann::json& metadata) const {}
         void virtual _end_frame(nlohmann::json& metadata) const {}
         void virtual _end_operation(nlohmann::json& metadata) const {}
         void _point_to_frame()

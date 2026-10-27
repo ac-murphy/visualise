@@ -9,9 +9,8 @@ namespace vis
 {
     enum projection
     {
-        none,
-        dim_2,
-        dim_3
+        dim_2 = 0,
+        dim_3 = 1
     };
     enum storage_order
     {
@@ -23,23 +22,22 @@ namespace vis
         std::array<std::string, 3> axis_labels;
         vis::projection projection;
         bool legend_visible;
+
+        bool projection_set = false;
     };
 
-    template <typename value_type>
-    struct plot_base
+    template <typename value_type> struct plot_base
     {
         std::array<float, 4> rgba = { 1.0f, 1.0f, 1.0f, 1.0f };
         std::string style = "";
         std::string label = "";
         vis::storage_order data_storage_order = vis::storage_order::row_major;
     };
-    template <typename value_type>
-    struct plot_2D : plot_base<value_type>
+    template <typename value_type> struct plot_2D : plot_base<value_type>
     {
         vis::converting::vector<value_type> x_values, y_values;
     };
-    template <typename value_type>
-    struct plot_3D : plot_base<value_type>
+    template <typename value_type> struct plot_3D : plot_base<value_type>
     {
         converting::vector<value_type> x_values, y_values, z_values;
     };
@@ -53,6 +51,10 @@ namespace vis
             metadata["projection"] = _frame.projection == dim_3 ? "3d" : "2d";
             metadata["legend_visible"] = _frame.legend_visible;
         }
+        void _end_vis(nlohmann::json& metadata) const override
+        {
+            metadata["display_as_anim"] = _display_as_anim;
+        }
         void _run() const override
         {
         #if PYTHON_TEST_MODE == 1
@@ -63,12 +65,13 @@ namespace vis
             sys::run_cmd({ exe_line,
                            "--mode", "plotting",
                            "--input", _dir.string(),
-                           "--settings", SETTINGS_DIR });
+                           "--settings", SETTINGS_DIR"plotting/" });
         }
 
+    /// Main methods.
     public:
         template <typename value_type>
-        void add_plot(const vis::plot_2D<value_type>& plot)
+        void add(const vis::plot_2D<value_type>& plot)
         {
             visualise_base::begin_operation("add_plot_2D");
             visualise_plotting::_use_projection(dim_2);
@@ -83,20 +86,8 @@ namespace vis
 
             visualise_base::end_operation();
         }
-
         template <typename value_type>
-        void add_plot(const std::vector<value_type>& x,
-                      const std::vector<value_type>& y)
-        {
-            vis::plot_2D<value_type> plot;
-            plot.x_values = x;
-            plot.y_values = y;
-
-            visualise_plotting::add_plot(plot);
-        }
-
-        template <typename value_type>
-        void add_plot(const vis::plot_3D<value_type>& plot)
+        void add(const vis::plot_3D<value_type>& plot)
         {
             visualise_base::begin_operation("add_plot_3D");
             visualise_plotting::_use_projection(dim_3);
@@ -113,6 +104,18 @@ namespace vis
             visualise_base::end_operation();
         }
 
+    /// Shortcuts.
+    public:
+        template <typename value_type>
+        void add_plot(const std::vector<value_type>& x,
+                      const std::vector<value_type>& y)
+        {
+            vis::plot_2D<value_type> plot;
+            plot.x_values = x;
+            plot.y_values = y;
+
+            visualise_plotting::add(plot);
+        }
         template <typename value_type>
         void add_plot(const std::vector<value_type>& x,
                       const std::vector<value_type>& y,
@@ -125,9 +128,10 @@ namespace vis
             plot.z_values = z;
             plot.data_storage_order = order;
 
-            visualise_plotting::add_plot(plot);
+            visualise_plotting::add(plot);
         }
 
+    /// Canvas methods.
     public:
         void set_axis_labels(const std::string& x_label,
                              const std::string& y_label)
@@ -148,13 +152,21 @@ namespace vis
             _frame.legend_visible = visible;
         }
 
+    /// Visualise methods.
+    public:
+        void set_display_as_anim(const bool& display_as_anim)
+        {
+            _display_as_anim = display_as_anim;
+        }
+
     private:
         void _use_projection(const vis::projection& projection)
         {
             // If projection hasn't yet been set, use specified.
-            if (_frame.projection == vis::projection::none)
+            if (!_frame.projection_set)
             {
                 _frame.projection = projection;
+                _frame.projection_set = true;
                 return;
             }
 
@@ -164,5 +176,8 @@ namespace vis
                 throw std::runtime_error("visualise_plotting::_use_projection \"all plots on the same canvas must use the same projection\"");
             }
         }
+
+    private:
+        bool _display_as_anim = false;
     };
 }

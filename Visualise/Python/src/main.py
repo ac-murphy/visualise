@@ -11,7 +11,7 @@ import system.json as json
 
 if __name__ == "__main__":
     # 1. read command line arguments:
-    # a) here we account for the '--' argument separator for using blender.
+    # a) here we account for the '--' argument separator for using blender:
     argv = sys.argv[1:]
     if '--' in argv: argv = argv[argv.index('--') + 1:]
     # b) initialise the parser:
@@ -21,13 +21,13 @@ if __name__ == "__main__":
     parser.add_argument('--settings', type=Path)
     args = parser.parse_args(argv)
 
-    # 2. decide whether to use matplotlib or blender
+    # 2. run specified visualise mode (if possible):
     match args.mode:
-        case 'geometric':
-            import geometric_interface
-            geometric_interface.main(args)
+        case 'geometry':
+            import geometry_main
+            geometry_main.main(args.input, args.settings)
         case 'plotting':
-            import plotting_interface
-            plotting_interface.main(args)
+            import plotting_main
+            plotting_main.main(args.input, args.settings)
         case _:
             raise ValueError(f'__main__ \"unsupported mode \'{args.mode}\'\"')

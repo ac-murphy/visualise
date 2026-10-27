@@ -113,12 +113,12 @@ def run_all(data_path: Path):
         # render all plots on canvas:
         plt.show()
 
-def main(args: Namespace):
+def main(data_path: Path, settings_path: Path):
     # todo: clear dirs here.
 
     global __metadata__
-    __metadata__ = json.read(args.input/'metadata')
+    __metadata__ = json.read(data_path/'metadata')
     global __defaults__
-    __defaults__ = json.read(args.settings/'plotting'/'defaults')
+    __defaults__ = json.read(settings_path/'defaults')
 
-    run_all(args.input)
+    run_all(data_path)

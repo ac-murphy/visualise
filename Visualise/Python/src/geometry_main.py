@@ -1,7 +1,7 @@
 from argparse import Namespace
 from pathlib import Path
-import geometric.blender_interface as bpyi
-import geometric.blender_shaders as bpys
+import geometry.blender_interface as bpyi
+import geometry.blender_shaders as bpys
 import system.json as json
 import system.bin as bin
 import numpy as np
@@ -33,7 +33,7 @@ def add_axes(*, data_path: Path):
     data = json.read(data_path/'data')
     size = data.get('size', __defaults__['empty_obj']['size'])
     location = mathutils.Vector(data['location'])
-    rotation = mathutils.Matrix(data['basis'])
+    rotation = mathutils.Matrix(data['rotation'])
 
     bpy.ops.object.empty_add(
         type='ARROWS',
@@ -124,12 +124,12 @@ def run_all(data_path: Path):
         bpyi.set_collection_visible(frame_layer_collection, True,  frame=i + 1)
         bpyi.set_collection_visible(frame_layer_collection, False, frame=i + 2)
 
-def main(args: Namespace):
+def main(data_path: Path, settings_path: Path):
     bpyi.init()
 
     global __metadata__
-    __metadata__ = json.read(args.input/'metadata')
+    __metadata__ = json.read(data_path/'metadata')
     global __defaults__
-    __defaults__ = json.read(args.settings/'geometry'/'defaults')
+    __defaults__ = json.read(settings_path/'defaults')
 
-    run_all(args.input)
+    run_all(data_path)
