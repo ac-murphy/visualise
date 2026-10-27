@@ -3,6 +3,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "include_guard.h"
+
 namespace vis::io::bin
 {
     template <typename T>

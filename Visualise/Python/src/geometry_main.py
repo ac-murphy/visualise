@@ -33,7 +33,7 @@ def add_axes(*, data_path: Path):
     data = json.read(data_path/'data')
     size = data.get('size', __defaults__['empty_obj']['size'])
     location = mathutils.Vector(data['location'])
-    rotation = mathutils.Matrix(data['basis'])
+    rotation = mathutils.Matrix(data['rotation'])
 
     bpy.ops.object.empty_add(
         type='ARROWS',

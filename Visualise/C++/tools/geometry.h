@@ -13,32 +13,23 @@
 
 namespace vis
 {
-    struct point_cloud
-    {
-        // std::vector<types::point_3D> points;
-        converting::vector<std::array<float, 3>> points;
-        std::array<float, 4> rgba;
-    };
     struct frame : frame_base
     {
     };
-    template <typename value_type>
-    struct box
+    template <typename value_type> struct point_cloud
     {
-        std::vector<vis::types::vector<value_type, 3>> vertices;
+        vis::converting::vector<vis::converting::array<value_type, 3>> points;
+        vis::converting::array<float, 4> rgba;
     };
-    template <typename value_type>
-    struct surface : vis::dataset_3D<value_type>
+    template <typename value_type> struct box
     {
-        template <typename container_x_type,
-                  typename container_y_type,
-                  typename container_z_type>
-        requires (vis::concepts::supports_iteration<container_x_type> &&
-                  vis::concepts::supports_iteration<container_y_type> &&
-                  vis::concepts::supports_multidimensional_index<container_z_type>)
-        surface(const container_x_type& x,
-                const container_y_type& y,
-                const container_z_type& z)
+        vis::converting::array<vis::converting::array<value_type, 3>, 8> vertices;
+    };
+    template <typename value_type> struct surface : vis::dataset_3D<value_type>
+    {
+        surface(const auto& x,
+                const auto& y,
+                const auto& z)
         : vis::dataset_3D<value_type>(x, y, z)
         {
             size_t i = 0;
@@ -58,36 +49,42 @@ namespace vis
 
         std::vector<std::array<value_type, 3>> points;
     };
-    template <typename value_type>
-    struct mesh
-    {
-
-    };
-
-    template <typename value_type>
-    struct empty_base
+    template <typename value_type> struct empty_base
     {
         vis::converting::array<value_type, 3> location;
         float size;
     };
-    template <typename value_type>
-    struct marker : empty_base<value_type>
+    template <typename value_type> struct marker : empty_base<value_type>
     {
     };
-    template <typename value_type>
-    struct arrow : empty_base<value_type>
+    template <typename value_type> struct arrow : empty_base<value_type>
     {
         vis::converting::array<value_type, 3> direction;
     };
-    template <typename value_type>
-    struct axes : empty_base<value_type>
+    template <typename value_type> struct axes : empty_base<value_type>
     {
-        vis::converting::matrix<value_type, 3, 3> basis;
+        vis::converting::matrix<value_type, 3, 3> rotation;
     };
-    template <typename value_type>
-    struct sphere : empty_base<value_type>
+    template <typename value_type> struct sphere : empty_base<value_type>
     {
         float& radius = this->size;
+    };
+    template <typename value_type> struct mesh_base
+    {
+        vis::converting::vector<vis::converting::array<value_type, 3>> points;
+    };
+    template <typename value_type> struct tri_mesh : mesh_base<value_type>
+    {
+        vis::converting::vector<vis::converting::array<vis::types::id, 3>> tri_indices;
+    };
+    template <typename value_type> struct quad_mesh : mesh_base<value_type>
+    {
+        vis::converting::vector<vis::converting::array<vis::types::id, 4>> quad_indices;
+    };
+    template <typename value_type> struct plane
+    {
+        vis::converting::array<value_type, 3> location;
+        vis::converting::array<value_type, 3> normal;
     };
 
     class visualise_geometry : public visualise_base<frame>
@@ -95,6 +92,12 @@ namespace vis
     private:
         void _run() const override
         {
+            if (!visualise_geometry::_blender_installed())
+            {
+                std::cerr << "visualise_geometry::_run \"blender is not installed; terminating...\"" << std::endl;
+                return;
+            }
+
             sys::run_cmd({ "blender",
                            (_dir / "vis.blend").string(),
                            "--python", PYTHON_SOURCE_DIR"main.py",
@@ -104,52 +107,57 @@ namespace vis
                            "--settings", SETTINGS_DIR"geometry/" });
         }
 
-    /// Empty/dimensionless objects.
+    private:
+        bool _blender_installed() const
+        {
+        #ifdef _WIN32
+            return std::system("where blender >nul 2>&1") == 0;
+        #elif defined(__linux__)
+            return std::system("command -v blender >/dev/null 2>&1") == 0;
+        #else
+            std::cerr << "visualise_geometry::_blender_installed \"unsupported platform\"" << std::endl;
+            return false;
+        #endif
+        }
+
+    /// Empty objects: main methods.
     public:
-        template <typename vector_type>
-        void add_marker(const vector_type& location)
+        template <typename value_type>
+        void add(const vis::marker<value_type>& marker)
         {
             visualise_base::begin_operation("add_marker");
 
             nlohmann::json data;
-            data["location"] = location;
+            data["location"] = marker.location.to_std();
             io::json::write(data, _active_dir, "data", 4);
 
             visualise_base::end_operation();
         }
-
-        template <typename vector_type, typename matrix_type>
-        void add_axes(const vector_type& location,
-                      const matrix_type& basis)
+        template <typename value_type>
+        void add(const vis::axes<value_type>& axes)
         {
             visualise_base::begin_operation("add_axes");
 
             nlohmann::json data;
-            data["location"] = location;
-            data["basis"] = {
-                { basis(0, 0), basis(0, 1), basis(0, 2) },
-                { basis(1, 0), basis(1, 1), basis(1, 2) },
-                { basis(2, 0), basis(2, 1), basis(2, 2) }
-            };
+            data["location"] = axes.location.to_std();
+            data["rotation"] = axes.rotation.to_std();
             io::json::write(data, _active_dir, "data", 4);
 
             visualise_base::end_operation();
         }
-
-        template <typename vector_type>
-        void add_arrow(const vector_type& location,
-                       const vector_type& direction)
+        template <typename value_type>
+        void add(const vis::arrow<value_type>& arrow)
         {
             visualise_base::begin_operation("add_arrow");
 
             nlohmann::json data;
-            data["location"] = location;
-            data["direction"] = direction;
+            data["location"] = arrow.location.to_std();
+            data["direction"] = arrow.direction.to_std();
 
             visualise_base::end_operation();
         }
-
-        void add_points(const vis::point_cloud& point_cloud)
+        template <typename value_type>
+        void add(const vis::point_cloud<value_type>& point_cloud)
         {
             visualise_base::begin_operation("add_points");
 
@@ -162,62 +170,74 @@ namespace vis
             visualise_base::end_operation();
         }
 
+    /// Empty objects: shortcuts.
+    public:
+        template <typename vector_type>
+        void add_marker(const vector_type& location)
+        {
+            vis::marker<typename vector_type::value_type> marker;
+            marker.location = location;
+
+            visualise_geometry::add(marker);
+        }
+        template <typename vector_type, typename matrix_type>
+        void add_axes(const vector_type& location, const matrix_type& rotation)
+        {
+            vis::axes<typename vector_type::value_type> axes;
+            axes.location = location;
+            axes.rotation = rotation;
+
+            visualise_geometry::add(axes);
+        }
         template <typename vector_type>
         void add_points(const std::vector<vector_type>& points)
         {
-            vis::point_cloud point_cloud;
+            vis::point_cloud<typename vector_type::value_type> point_cloud;
             point_cloud.points = points;
             point_cloud.rgba = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-            visualise_geometry::add_points(point_cloud);
+            visualise_geometry::add(point_cloud);
         }
 
-    /// Solid objects.
+    /// Solid objects: main methods.
     public:
-        template <typename vector_type>
-        void add_mesh(const std::vector<vector_type>& points,
-                      const std::vector<std::array<types::id, 3>>& tri_indices)
+        template <typename value_type>
+        void add(const vis::tri_mesh<value_type>& tri_mesh)
         {
             visualise_base::begin_operation("add_mesh_from_tris");
 
-            io::bin::write(points, _active_dir, "points");
-            io::bin::write(tri_indices, _active_dir, "tri_indices");
+            io::bin::write(tri_mesh.points.to_std(), _active_dir, "points");
+            io::bin::write(tri_mesh.tri_indices.to_std(), _active_dir, "tri_indices");
 
             visualise_base::end_operation();
         }
-
-        template <typename vector_type>
-        void add_mesh(const std::vector<vector_type>& points,
-                      const std::vector<std::array<types::id, 4>>& quad_indices)
+        template <typename value_type>
+        void add(const vis::quad_mesh<value_type>& quad_mesh)
         {
             visualise_base::begin_operation("add_mesh_from_quads");
 
-            io::bin::write(points, _active_dir, "points");
-            io::bin::write(quad_indices, _active_dir, "quad_indices");
+            io::bin::write(quad_mesh.points.to_std(), _active_dir, "points");
+            io::bin::write(quad_mesh.quad_indices.to_std(), _active_dir, "quad_indices");
 
             visualise_base::end_operation();
         }
-
-        template <typename vector_type>
-        void add_plane(const vector_type& location,
-                       const vector_type& normal)
+        template <typename value_type>
+        void add(const vis::plane<value_type>& plane)
         {
             visualise_base::begin_operation("add_plane");
 
             nlohmann::json data;
-            data["location"] = location;
-            data["normal"] = normal;
+            data["location"] = plane.location.to_std();
+            data["normal"] = plane.normal.to_std();
             io::json::write(data, _active_dir, "data");
 
             visualise_base::end_operation();
         }
-
         template <typename value_type>
-        void add_surface(const vis::surface<value_type>& surface)
+        void add(const vis::surface<value_type>& surface)
         {
             const size_t rows = surface.x.size();
             const size_t columns = surface.y.size();
-            // std::vector<std::array<types::id, 3>> tri_indices;
             std::vector<std::array<vis::types::id, 4>> quad_indices;
             for (size_t i = 0; i < rows - 1; ++i)
                 for (size_t j = 0; j < columns - 1; ++j)
@@ -227,23 +247,13 @@ namespace vis
                     const auto BL = static_cast<vis::types::id>(vis::to_linear_index(i,     j + 1, rows, columns));
                     const auto BR = static_cast<vis::types::id>(vis::to_linear_index(i + 1, j + 1, rows, columns));
                     quad_indices.push_back({ TL, TR, BR, BL });
-                    // tri_indices.push_back({ TR, TL, BR });
-                    // tri_indices.push_back({ TL, BL, BR });
                 }
 
             // visualise_geometry::add_mesh(surface.points, tri_indices);
             visualise_geometry::add_mesh(surface.points, quad_indices);
         }
-
-        // todo: finish.
         template <typename value_type>
-        void add_quadratic_surface()
-        {
-
-        }
-
-        template <typename value_type>
-        void add_box(const vis::box<value_type>& box)
+        void add(const vis::box<value_type>& box)
         {
             std::vector<std::array<types::id, 4>> quad_indices = {
                 { 0, 2, 3, 1 },
@@ -254,7 +264,49 @@ namespace vis
                 { 7, 6, 4, 5 }
             };
 
-            visualise_geometry::add_mesh(box.vertices, quad_indices);
+            auto vertex_array = box.vertices.to_std();
+            auto vertex_vector = std::vector(vertex_array.begin(), vertex_array.end());
+            visualise_geometry::add_mesh(vertex_vector, quad_indices);
+        }
+
+    /// Solid objects: shortcuts.
+    public:
+        template <typename vector_type>
+        void add_mesh(const std::vector<vector_type>& points,
+                      const std::vector<std::array<types::id, 3>>& tri_indices)
+        {
+            vis::tri_mesh<typename vector_type::value_type> tri_mesh;
+            tri_mesh.points = points;
+            tri_mesh.tri_indices = tri_indices;
+
+            visualise_geometry::add(tri_mesh);
+        }
+        template <typename vector_type>
+        void add_mesh(const std::vector<vector_type>& points,
+                      const std::vector<std::array<types::id, 4>>& quad_indices)
+        {
+            vis::quad_mesh<typename vector_type::value_type> quad_mesh;
+            quad_mesh.points = points;
+            quad_mesh.quad_indices = quad_indices;
+
+            visualise_geometry::add(quad_mesh);
+        }
+        template <typename vector_type>
+        void add_plane(const vector_type& location,
+                       const vector_type& normal)
+        {
+            vis::plane<typename vector_type::value_type> plane;
+            plane.location = location;
+            plane.normal = normal;
+
+            visualise_geometry::add(plane);
+        }
+
+        // todo: finish.
+        template <typename value_type>
+        void add_quadratic_surface()
+        {
+
         }
     };
 }
