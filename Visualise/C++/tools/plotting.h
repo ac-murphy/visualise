@@ -79,8 +79,12 @@ namespace vis
 
             const auto x_values_std = plot.x_values.to_std();
             const auto y_values_std = plot.y_values.to_std();
+
+            // Write values.
             io::bin::write(x_values_std, _active_dir, "x_values");
             io::bin::write(y_values_std, _active_dir, "y_values");
+
+            // Write nan masks.
             io::bin::write(visualise_plotting::_nan_mask(x_values_std), _active_dir, "x_values_nan_mask");
             io::bin::write(visualise_plotting::_nan_mask(y_values_std), _active_dir, "y_values_nan_mask");
 
@@ -184,15 +188,17 @@ namespace vis
         template <typename type>
         void _use_type()
         {
-            if constexpr (std::same_as<type, float>)
-                _operation.data_type = "float32";
-            else if constexpr (std::same_as<type, int>)
-                _operation.data_type = "int32";
+            if constexpr (vis::type_name_v<type> != "")
+                _operation.data_type = vis::type_name_v<type>;
             else
                 throw std::runtime_error(std::format("visualise_plotting::_use_type \"unrecognised data type \'{}\'\"", typeid(type).name()));
         }
 
     private:
+        /// Create a mask that maps, for a container @code C@endcode with value type @code T@endcode,
+        ///  - @code t == std::numeric_limits<T>::max() -> 1@endcode,
+        ///  - @code std::isnan(t) -> 1@endcode,
+        ///  - @code otherwise -> 0@endcode.
         template <typename container_type>
         std::vector<bool> _nan_mask(const container_type& data)
         {
@@ -200,14 +206,7 @@ namespace vis
             std::vector<bool> nan_mask(data.size());
 
             for (auto i = 0; i < data.size(); ++i)
-            {
-                if constexpr (std::same_as<value_type, int>)
-                    nan_mask[i] = data[i] == std::numeric_limits<int>::max();
-                else if constexpr (std::same_as<value_type, float>)
-                    nan_mask[i] = data[i] == std::numeric_limits<float>::max() || std::isnan(data[i]);
-                else
-                    throw std::runtime_error(std::format("visualise_plotting::_nan_mask \"unrecognised data type \'{}\'\"", typeid(value_type).name()));
-            }
+                nan_mask[i] = data[i] == std::numeric_limits<value_type>::max() || std::isnan(data[i]);
 
             return nan_mask;
         }

@@ -140,9 +140,9 @@ TEST_F(Experimentation, Plotting)
 
     vis.begin_frame("test 2D integer plot");
     {
-        vis::plot_2D<int> plot;
-        plot.x_values = { 1, 2, 3,       4, 5 };
-        plot.y_values = { 0, 0, 1, INT_MAX, 2 };
+        vis::plot_2D<uint32_t> plot;
+        plot.x_values = { 1, 2, 3,                                    4, 5, 6 };
+        plot.y_values = { 0, 0, 1, std::numeric_limits<uint32_t>::max(), 2, 2 };
         vis.add(plot);
     }
     vis.end_frame();

@@ -78,6 +78,20 @@ namespace vis::types
 
 namespace vis
 {
+    #define TYPE_NAME_TRAIT(native_name, descriptive_name) \
+        template <> struct type_name_trait<native_name> { static constexpr std::string_view value = descriptive_name; }
+
+    template <typename> struct type_name_trait;
+    TYPE_NAME_TRAIT(uint8_t,  "uint8");
+    TYPE_NAME_TRAIT(int32_t,  "int32");
+    TYPE_NAME_TRAIT(uint32_t, "uint32");
+    TYPE_NAME_TRAIT(float,    "float32");
+
+    template <typename T> constexpr std::string_view type_name_v = type_name_trait<std::remove_cvref_t<T>>::value;
+}
+
+namespace vis
+{
     template <typename container_type>
     std::pair<int32_t, int32_t> dimensions(const container_type& container)
     {

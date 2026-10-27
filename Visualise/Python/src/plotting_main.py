@@ -23,7 +23,8 @@ def register(func):
 def np_dtype_of(data_type_str: str):
     match data_type_str:
         case 'float32': return np.float32
-        case 'int32': return np.int32
+        case 'int32':   return np.int32
+        case 'uint32':  return np.uint32
         case _: return np.float32
 
 class data_storage_order(Enum):
