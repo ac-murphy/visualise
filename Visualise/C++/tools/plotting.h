@@ -74,10 +74,15 @@ namespace vis
         void add(const vis::plot_2D<value_type>& plot)
         {
             visualise_base::begin_operation("add_plot_2D");
+            visualise_plotting::_use_type<value_type>();
             visualise_plotting::_use_projection(dim_2);
 
-            io::bin::write(plot.x_values.to_std(), _active_dir, "x_values");
-            io::bin::write(plot.y_values.to_std(), _active_dir, "y_values");
+            const auto x_values_std = plot.x_values.to_std();
+            const auto y_values_std = plot.y_values.to_std();
+            io::bin::write(x_values_std, _active_dir, "x_values");
+            io::bin::write(y_values_std, _active_dir, "y_values");
+            io::bin::write(visualise_plotting::_nan_mask(x_values_std), _active_dir, "x_values_nan_mask");
+            io::bin::write(visualise_plotting::_nan_mask(y_values_std), _active_dir, "y_values_nan_mask");
 
             nlohmann::json data;
             data["label"] = plot.label;
@@ -175,6 +180,36 @@ namespace vis
             {
                 throw std::runtime_error("visualise_plotting::_use_projection \"all plots on the same canvas must use the same projection\"");
             }
+        }
+        template <typename type>
+        void _use_type()
+        {
+            if constexpr (std::same_as<type, float>)
+                _operation.data_type = "float32";
+            else if constexpr (std::same_as<type, int>)
+                _operation.data_type = "int32";
+            else
+                throw std::runtime_error(std::format("visualise_plotting::_use_type \"unrecognised data type \'{}\'\"", typeid(type).name()));
+        }
+
+    private:
+        template <typename container_type>
+        std::vector<bool> _nan_mask(const container_type& data)
+        {
+            using value_type = typename container_type::value_type;
+            std::vector<bool> nan_mask(data.size());
+
+            for (auto i = 0; i < data.size(); ++i)
+            {
+                if constexpr (std::same_as<value_type, int>)
+                    nan_mask[i] = data[i] == std::numeric_limits<int>::max();
+                else if constexpr (std::same_as<value_type, float>)
+                    nan_mask[i] = data[i] == std::numeric_limits<float>::max() || std::isnan(data[i]);
+                else
+                    throw std::runtime_error(std::format("visualise_plotting::_nan_mask \"unrecognised data type \'{}\'\"", typeid(value_type).name()));
+            }
+
+            return nan_mask;
         }
 
     private:

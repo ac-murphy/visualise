@@ -2,6 +2,7 @@ from pathlib import Path
 import numpy as np
 
 def read(path: Path, *, n_cols: int, dtype: np.dtype):
+    # read source file:
     path = path.with_suffix('.bin')
     data = np.fromfile(path, dtype=dtype).reshape(-1, n_cols)
 

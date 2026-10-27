@@ -17,6 +17,7 @@ namespace vis
     {
         std::string name;
         std::string type;
+        std::string data_type;
     };
     template <typename value_type>
     struct dataset_2D
@@ -158,6 +159,7 @@ namespace vis
             nlohmann::json metadata;
             metadata["type"] = _operation.type;
             metadata["name"] = _operation.name.empty() ? std::format("operation_{}", _operation_count) : _operation.name;
+            metadata["data_type"] = _operation.data_type;
             this->_end_operation(metadata);
             io::json::write(metadata, visualise_base::_operation_dir(), "metadata", 4);
 
