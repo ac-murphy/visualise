@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <fstream>
 
+#include "include_guard.h"
 #include "json.hpp"
 
 namespace vis::io::json

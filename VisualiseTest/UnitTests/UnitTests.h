@@ -21,9 +21,9 @@ TEST_F(Experimentation, Geometric)
         { 0.0f, 1.0f, 1.0f }
     };
 
-    Eigen::Matrix3f basis { { 0.0f, -1.0f, 0.0f },
-                            { 1.0f,  0.0f, 1.0f },
-                            { 0.0f,  0.0f, 1.0f } };
+    Eigen::Matrix<float, 3, 3, Eigen::RowMajor> basis { { 0.0f, -1.0f, 0.0f },
+                                                        { 1.0f,  0.0f, 1.0f },
+                                                        { 0.0f,  0.0f, 1.0f } };
 
     std::vector<std::array<uint32_t, 3>> tri_indices
     {
@@ -54,11 +54,11 @@ TEST_F(Experimentation, Geometric)
     vis.begin_frame("surface");
     {
         vis::surface<float> surface(X, Y, Z);
-        vis.add_surface(surface);
+        vis.add(surface);
 
         vis::box<float> box;
         box.vertices = points;
-        vis.add_box(box);
+        vis.add(box);
     }
     vis.end_frame();
 
@@ -68,7 +68,6 @@ TEST_F(Experimentation, Geometric)
         vis.add_marker(point);
         vis::arrow<float> arrow;
         arrow.direction = { 1.0f, 1.0f, 1.0f };
-
     }
     vis.end_frame();
 
@@ -123,16 +122,7 @@ TEST_F(Experimentation, Plotting)
         plot.x_values = x;
         plot.y_values = y;
         plot.label = "$y = f(x)$";
-        vis.add_plot(plot);
-
-        // vis::plot_2D<float> plot1(X, y1);
-        // plot1.style = "--";
-        // plot1.label = "$y = sin(x)$";
-        // vis.add_plot(plot1);
-        //
-        // vis::plot_2D<float> plot2(X, y2);
-        // plot2.label = "$y = cos(x)$";
-        // vis.add_plot(plot2);
+        vis.add(plot);
     }
     vis.end_frame();
 
@@ -143,11 +133,10 @@ TEST_F(Experimentation, Plotting)
         plot.x_values = X;
         plot.y_values = X;
         plot.z_values = Z;
-        plot.label = "$z = f(x) + g(y)$";
-        plot.data_storage_order = vis::storage_order::column_major;
-        vis.add_plot(plot);
+
+        vis.add(plot);
+        vis.end_frame();
     }
-    vis.end_frame();
 
     vis.run();
 }
@@ -192,19 +181,42 @@ TEST_F(UnitTest, ConvertingArray__ConstReference)
 }
 TEST_F(UnitTest, ConvertingArray__To_StdArray)
 {
+    vis::converting::array<float, 3> arr = { 1.0f, 2.0f, 3.0f };
+    auto std_arr = arr.to_std();
+
+    ASSERT_EQ(std_arr.size(), 3);
+    ASSERT_EQ(std_arr[0], 1.0f);
+    ASSERT_EQ(std_arr[1], 2.0f);
+    ASSERT_EQ(std_arr[2], 3.0f);
+    static_assert(std::same_as<decltype(std_arr), std::array<float, 3>>);
+
+    vis::converting::array<vis::converting::array<float, 3>, 2> arr_2_3 = { { 1.0f, 2.0f, 3.0f },
+                                                                            { 4.0f, 5.0f, 6.0f } };
+    auto std_arr_2_3 = arr_2_3.to_std();
+    ASSERT_EQ(std_arr_2_3.size(), 2);
+    ASSERT_EQ(std_arr_2_3[0].size(), 3);
+    ASSERT_EQ(std_arr_2_3[0][0], 1.0f);
+    ASSERT_EQ(std_arr_2_3[0][1], 2.0f);
+    ASSERT_EQ(std_arr_2_3[0][2], 3.0f);
+    ASSERT_EQ(std_arr_2_3[1][0], 4.0f);
+    ASSERT_EQ(std_arr_2_3[1][1], 5.0f);
+    ASSERT_EQ(std_arr_2_3[1][2], 6.0f);
+    static_assert(std::same_as<decltype(std_arr_2_3), std::array<std::array<float, 3>, 2>>);
+}
+TEST_F(UnitTest, ConvertingArray__From_StdArray)
+{
     vis::converting::array<float, 3> arr;
     std::array<float, 3> std_arr = { 1.0f, 2.0, 3.0f };
     ASSERT_EQ(arr[0], 0.0f);
     ASSERT_EQ(arr[1], 0.0f);
     ASSERT_EQ(arr[2], 0.0f);
 
-
     arr = std_arr;
     ASSERT_EQ(arr[0], 1.0f);
     ASSERT_EQ(arr[1], 2.0f);
     ASSERT_EQ(arr[2], 3.0f);
 }
-TEST_F(UnitTest, ConvertingArray__To_StdArray_BadSize)
+TEST_F(UnitTest, ConvertingArray__From_StdArray_BadSize)
 {
     vis::converting::array<float, 3> arr;
     std::array<float, 2> std_arr_2 = { 1.0f, 2.0f };
@@ -213,7 +225,7 @@ TEST_F(UnitTest, ConvertingArray__To_StdArray_BadSize)
     ASSERT_ANY_THROW(arr = std_arr_2);
     ASSERT_ANY_THROW(arr = std_arr_4);
 }
-TEST_F(UnitTest, ConvertingArray__To_StdVector)
+TEST_F(UnitTest, ConvertingArray__From_StdVector)
 {
     vis::converting::array<float, 3> arr;
     std::vector<float> std_arr = { 1.0f, 2.0, 3.0f };
@@ -226,7 +238,7 @@ TEST_F(UnitTest, ConvertingArray__To_StdVector)
     ASSERT_EQ(arr[1], 2.0f);
     ASSERT_EQ(arr[2], 3.0f);
 }
-TEST_F(UnitTest, ConvertingArray__To_StdVector_BadSize)
+TEST_F(UnitTest, ConvertingArray__From_StdVector_BadSize)
 {
     vis::converting::array<float, 3> arr;
     std::vector<float> std_arr_2 = { 1.0f, 2.0f };
@@ -235,7 +247,7 @@ TEST_F(UnitTest, ConvertingArray__To_StdVector_BadSize)
     ASSERT_ANY_THROW(arr = std_arr_2);
     ASSERT_ANY_THROW(arr = std_arr_4);
 }
-TEST_F(UnitTest, ConvertingArray__To_EigenVectorStatic)
+TEST_F(UnitTest, ConvertingArray__From_EigenVectorStatic)
 {
     vis::converting::array<float, 3> arr;
     Eigen::Vector<float, 3> eigen_arr = { 1.0f, 2.0f, 3.0f };
@@ -248,7 +260,7 @@ TEST_F(UnitTest, ConvertingArray__To_EigenVectorStatic)
     ASSERT_EQ(arr[1], 2.0f);
     ASSERT_EQ(arr[2], 3.0f);
 }
-TEST_F(UnitTest, ConvertingArray__To_EigenVectorStatic_BadSize)
+TEST_F(UnitTest, ConvertingArray__From_EigenVectorStatic_BadSize)
 {
     vis::converting::array<float, 3> arr;
     Eigen::Vector<float, 2> eigen_arr_2 = { 1.0f, 2.0f };
@@ -257,7 +269,7 @@ TEST_F(UnitTest, ConvertingArray__To_EigenVectorStatic_BadSize)
     ASSERT_ANY_THROW(arr = eigen_arr_2);
     ASSERT_ANY_THROW(arr = eigen_arr_4);
 }
-TEST_F(UnitTest, ConvertingArray__To_EigenVectorDynamic)
+TEST_F(UnitTest, ConvertingArray__From_EigenVectorDynamic)
 {
     vis::converting::array<float, 3> arr;
     Eigen::VectorXf eigen_arr(3);
@@ -271,7 +283,7 @@ TEST_F(UnitTest, ConvertingArray__To_EigenVectorDynamic)
     ASSERT_EQ(arr[1], 2.0f);
     ASSERT_EQ(arr[2], 3.0f);
 }
-TEST_F(UnitTest, ConvertingArray__To_EigenVectorDynamic_BadSize)
+TEST_F(UnitTest, ConvertingArray__From_EigenVectorDynamic_BadSize)
 {
     vis::converting::array<float, 3> arr;
     Eigen::VectorXf eigen_arr_2(2);
@@ -282,7 +294,7 @@ TEST_F(UnitTest, ConvertingArray__To_EigenVectorDynamic_BadSize)
     ASSERT_ANY_THROW(arr = eigen_arr_2);
     ASSERT_ANY_THROW(arr = eigen_arr_4);
 }
-TEST_F(UnitTest, ConvertingArray__To_EigenMatrixStatic)
+TEST_F(UnitTest, ConvertingArray__From_EigenMatrixStatic)
 {
     vis::converting::array<float, 6> arr;
     Eigen::Matrix<float, 2, 3, Eigen::RowMajor> eigen_arr_2_3;
@@ -312,7 +324,7 @@ TEST_F(UnitTest, ConvertingArray__To_EigenMatrixStatic)
     ASSERT_EQ(arr[4], -5.0f);
     ASSERT_EQ(arr[5], -6.0f);
 }
-TEST_F(UnitTest, ConvertingArray__To_EigenMatrixStatic_BadSize)
+TEST_F(UnitTest, ConvertingArray__From_EigenMatrixStatic_BadSize)
 {
     vis::converting::array<float, 4> arr;
     Eigen::Matrix<float, 3, 3, Eigen::RowMajor> eigen_arr_3_3;
@@ -323,7 +335,7 @@ TEST_F(UnitTest, ConvertingArray__To_EigenMatrixStatic_BadSize)
     ASSERT_ANY_THROW(arr = eigen_arr_2_3);
     ASSERT_ANY_THROW(arr = eigen_arr_3_3);
 }
-TEST_F(UnitTest, ConvertingArray__To_EigenMatrixDynamic)
+TEST_F(UnitTest, ConvertingArray__From_EigenMatrixDynamic)
 {
     vis::converting::array<float, 6> arr;
     Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> eigen_arr_2_3(2, 3);
@@ -353,7 +365,7 @@ TEST_F(UnitTest, ConvertingArray__To_EigenMatrixDynamic)
     ASSERT_EQ(arr[4], -5.0f);
     ASSERT_EQ(arr[5], -6.0f);
 }
-TEST_F(UnitTest, ConvertingArray__To_EigenMatrixDynamic_BadSize)
+TEST_F(UnitTest, ConvertingArray__From_EigenMatrixDynamic_BadSize)
 {
     vis::converting::array<float, 4> arr;
     Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> eigen_arr_2_3(2, 3);
@@ -364,7 +376,7 @@ TEST_F(UnitTest, ConvertingArray__To_EigenMatrixDynamic_BadSize)
     ASSERT_ANY_THROW(arr = eigen_arr_2_3);
     ASSERT_ANY_THROW(arr = eigen_arr_3_3);
 }
-TEST_F(UnitTest, ConvertingArray__To_EigenMatrixStatic_RowOrCol)
+TEST_F(UnitTest, ConvertingArray__From_EigenMatrixStatic_RowOrCol)
 {
     vis::converting::array<float, 3> arr;
     Eigen::Matrix<float, 3, 3> eigen_mat;
@@ -383,7 +395,7 @@ TEST_F(UnitTest, ConvertingArray__To_EigenMatrixStatic_RowOrCol)
     ASSERT_EQ(arr[1], 4.0f);
     ASSERT_EQ(arr[2], 7.0f);
 }
-TEST_F(UnitTest, ConvertingArray__To_EigenMatrixStatic_RowOrCol_BadSize)
+TEST_F(UnitTest, ConvertingArray__From_EigenMatrixStatic_RowOrCol_BadSize)
 {
     vis::converting::array<float, 4> arr;
     Eigen::Matrix<float, 3, 3, Eigen::RowMajor> eigen_arr_3_3;
@@ -394,7 +406,7 @@ TEST_F(UnitTest, ConvertingArray__To_EigenMatrixStatic_RowOrCol_BadSize)
     ASSERT_ANY_THROW(arr = eigen_arr_3_3.col(0));
     ASSERT_ANY_THROW(arr = eigen_arr_2_3.row(1));
 }
-TEST_F(UnitTest, ConvertingArray__To_EigenMatrixDynamic_RowOrCol)
+TEST_F(UnitTest, ConvertingArray__From_EigenMatrixDynamic_RowOrCol)
 {
     vis::converting::array<float, 3> arr;
     Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> eigen_mat(3, 3);
@@ -413,7 +425,7 @@ TEST_F(UnitTest, ConvertingArray__To_EigenMatrixDynamic_RowOrCol)
     ASSERT_EQ(arr[1], 4.0f);
     ASSERT_EQ(arr[2], 7.0f);
 }
-TEST_F(UnitTest, ConvertingArray__To_EigenMatrixDynamic_RowOrCol_BadSize)
+TEST_F(UnitTest, ConvertingArray__From_EigenMatrixDynamic_RowOrCol_BadSize)
 {
     vis::converting::array<float, 4> arr;
     Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> eigen_arr_3_3(3, 3);
@@ -423,6 +435,30 @@ TEST_F(UnitTest, ConvertingArray__To_EigenMatrixDynamic_RowOrCol_BadSize)
 
     ASSERT_ANY_THROW(arr = eigen_arr_3_3.col(0));
     ASSERT_ANY_THROW(arr = eigen_arr_2_3.row(1));
+}
+TEST_F(UnitTest, ConvertingVector__To_StdVector)
+{
+    vis::converting::vector<float> vec = { 1.0f, 2.0f, 3.0f };
+    auto std_vec = vec.to_std();
+
+    ASSERT_EQ(std_vec.size(), 3);
+    ASSERT_EQ(std_vec[0], 1.0f);
+    ASSERT_EQ(std_vec[1], 2.0f);
+    ASSERT_EQ(std_vec[2], 3.0f);
+    static_assert(std::same_as<decltype(std_vec), std::vector<float>>);
+
+    vis::converting::vector<vis::converting::vector<float>> vec_2_3 = { { 1.0f, 2.0f, 3.0f },
+                                                                        { 4.0f, 5.0f, 6.0f } };
+    auto std_vec_2_3 = vec_2_3.to_std();
+    ASSERT_EQ(std_vec_2_3.size(), 2);
+    ASSERT_EQ(std_vec_2_3[0].size(), 3);
+    ASSERT_EQ(std_vec_2_3[0][0], 1.0f);
+    ASSERT_EQ(std_vec_2_3[0][1], 2.0f);
+    ASSERT_EQ(std_vec_2_3[0][2], 3.0f);
+    ASSERT_EQ(std_vec_2_3[1][0], 4.0f);
+    ASSERT_EQ(std_vec_2_3[1][1], 5.0f);
+    ASSERT_EQ(std_vec_2_3[1][2], 6.0f);
+    static_assert(std::same_as<decltype(std_vec_2_3), std::vector<std::vector<float>>>);
 }
 TEST_F(UnitTest, ConvertingVector__Reference)
 {
@@ -449,7 +485,7 @@ TEST_F(UnitTest, ConvertingVector__ConstReference)
 
     static_assert(std::same_as<decltype(arr[0]), const float&>);
 }
-TEST_F(UnitTest, ConvertingVector__To_StdArray)
+TEST_F(UnitTest, ConvertingVector__From_StdArray)
 {
     vis::converting::vector<float> vec;
     std::array<float, 3> std_arr = { 1.0f, 2.0, 3.0f };
@@ -461,7 +497,7 @@ TEST_F(UnitTest, ConvertingVector__To_StdArray)
     ASSERT_EQ(vec[1], 2.0f);
     ASSERT_EQ(vec[2], 3.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_StdArray_DiffSize)
+TEST_F(UnitTest, ConvertingVector__From_StdArray_DiffSize)
 {
     vis::converting::vector<float> vec;
     std::array<float, 2> std_arr_2 = { 1.0f, 2.0f };
@@ -480,7 +516,7 @@ TEST_F(UnitTest, ConvertingVector__To_StdArray_DiffSize)
     ASSERT_EQ(vec[2], 3.0f);
     ASSERT_EQ(vec[3], 4.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_StdVector)
+TEST_F(UnitTest, ConvertingVector__From_StdVector)
 {
     vis::converting::vector<float> vec;
     std::vector<float> std_vec = { 1.0f, 2.0, 3.0f };
@@ -492,7 +528,7 @@ TEST_F(UnitTest, ConvertingVector__To_StdVector)
     ASSERT_EQ(vec[1], 2.0f);
     ASSERT_EQ(vec[2], 3.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_StdVector_DiffSize)
+TEST_F(UnitTest, ConvertingVector__From_StdVector_DiffSize)
 {
     vis::converting::vector<float> vec;
     std::vector<float> std_vec_2 = { 1.0f, 2.0f };
@@ -511,7 +547,7 @@ TEST_F(UnitTest, ConvertingVector__To_StdVector_DiffSize)
     ASSERT_EQ(vec[2], 3.0f);
     ASSERT_EQ(vec[3], 4.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_EigenVectorStatic)
+TEST_F(UnitTest, ConvertingVector__From_EigenVectorStatic)
 {
     vis::converting::vector<float> vec;
     Eigen::Vector<float, 3> eigen_vec = { 1.0f, 2.0f, 3.0f };
@@ -523,7 +559,7 @@ TEST_F(UnitTest, ConvertingVector__To_EigenVectorStatic)
     ASSERT_EQ(vec[1], 2.0f);
     ASSERT_EQ(vec[2], 3.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_EigenVectorStatic_DiffSize)
+TEST_F(UnitTest, ConvertingVector__From_EigenVectorStatic_DiffSize)
 {
     vis::converting::vector<float> vec;
     Eigen::Vector<float, 2> eigen_vec_2 = { 1.0f, 2.0f };
@@ -542,7 +578,7 @@ TEST_F(UnitTest, ConvertingVector__To_EigenVectorStatic_DiffSize)
     ASSERT_EQ(vec[2], 3.0f);
     ASSERT_EQ(vec[3], 4.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_EigenVectorDynamic)
+TEST_F(UnitTest, ConvertingVector__From_EigenVectorDynamic)
 {
     vis::converting::vector<float> vec;
     Eigen::VectorXf eigen_vec(3);
@@ -555,7 +591,7 @@ TEST_F(UnitTest, ConvertingVector__To_EigenVectorDynamic)
     ASSERT_EQ(vec[1], 2.0f);
     ASSERT_EQ(vec[2], 3.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_EigenVectorDynamic_DiffSize)
+TEST_F(UnitTest, ConvertingVector__From_EigenVectorDynamic_DiffSize)
 {
     vis::converting::vector<float> vec;
     Eigen::VectorXf eigen_vec_2(2);
@@ -576,7 +612,7 @@ TEST_F(UnitTest, ConvertingVector__To_EigenVectorDynamic_DiffSize)
     ASSERT_EQ(vec[2], 3.0f);
     ASSERT_EQ(vec[3], 4.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_EigenMatrixStatic)
+TEST_F(UnitTest, ConvertingVector__From_EigenMatrixStatic)
 {
     vis::converting::vector<float> vec;
     Eigen::Matrix<float, 2, 3, Eigen::RowMajor> eigen_mat_2_3;
@@ -603,7 +639,7 @@ TEST_F(UnitTest, ConvertingVector__To_EigenMatrixStatic)
     ASSERT_EQ(vec[4], -5.0f);
     ASSERT_EQ(vec[5], -6.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_EigenMatrixStatic_DiffSize)
+TEST_F(UnitTest, ConvertingVector__From_EigenMatrixStatic_DiffSize)
 {
     vis::converting::vector<float> vec;
     Eigen::Matrix<float, 3, 3, Eigen::RowMajor> eigen_mat_3_3;
@@ -633,7 +669,7 @@ TEST_F(UnitTest, ConvertingVector__To_EigenMatrixStatic_DiffSize)
     ASSERT_EQ(vec[4], 5.0f);
     ASSERT_EQ(vec[5], 6.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_EigenMatrixDynamic)
+TEST_F(UnitTest, ConvertingVector__From_EigenMatrixDynamic)
 {
     vis::converting::vector<float> vec;
     Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> eigen_mat_2_3(2, 3);
@@ -660,7 +696,7 @@ TEST_F(UnitTest, ConvertingVector__To_EigenMatrixDynamic)
     ASSERT_EQ(vec[4], -5.0f);
     ASSERT_EQ(vec[5], -6.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_EigenMatrixDynamic_DiffSize)
+TEST_F(UnitTest, ConvertingVector__From_EigenMatrixDynamic_DiffSize)
 {
     vis::converting::vector<float> vec;
     Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> eigen_mat_3_3(3, 3);
@@ -690,7 +726,7 @@ TEST_F(UnitTest, ConvertingVector__To_EigenMatrixDynamic_DiffSize)
     ASSERT_EQ(vec[4], 5.0f);
     ASSERT_EQ(vec[5], 6.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_EigenMatrixStatic_RowOrCol)
+TEST_F(UnitTest, ConvertingVector__From_EigenMatrixStatic_RowOrCol)
 {
     vis::converting::vector<float> vec;
     Eigen::Matrix<float, 3, 3> eigen_mat_3_3;
@@ -709,7 +745,7 @@ TEST_F(UnitTest, ConvertingVector__To_EigenMatrixStatic_RowOrCol)
     ASSERT_EQ(vec[1], 4.0f);
     ASSERT_EQ(vec[2], 7.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_EigenMatrixStatic_RowOrCol_DiffSize)
+TEST_F(UnitTest, ConvertingVector__From_EigenMatrixStatic_RowOrCol_DiffSize)
 {
     vis::converting::vector<float> vec;
     Eigen::Matrix<float, 3, 3, Eigen::RowMajor> eigen_mat_3_3;
@@ -730,7 +766,7 @@ TEST_F(UnitTest, ConvertingVector__To_EigenMatrixStatic_RowOrCol_DiffSize)
     ASSERT_EQ(vec[1], 4.0f);
     ASSERT_EQ(vec[2], 7.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_EigenMatrixDynamic_RowOrCol)
+TEST_F(UnitTest, ConvertingVector__From_EigenMatrixDynamic_RowOrCol)
 {
     vis::converting::vector<float> vec;
     Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> eigen_mat_3_3(3, 3);
@@ -749,7 +785,7 @@ TEST_F(UnitTest, ConvertingVector__To_EigenMatrixDynamic_RowOrCol)
     ASSERT_EQ(vec[1], 4.0f);
     ASSERT_EQ(vec[2], 7.0f);
 }
-TEST_F(UnitTest, ConvertingVector__To_EigenMatrixDynamic_RowOrCol_DiffSize)
+TEST_F(UnitTest, ConvertingVector__From_EigenMatrixDynamic_RowOrCol_DiffSize)
 {
     vis::converting::vector<float> vec;
     Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> eigen_mat_3_3(3, 3);
