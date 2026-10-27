@@ -1,4 +1,3 @@
-from argparse import Namespace
 from pathlib import Path
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from matplotlib.figure import Figure
@@ -21,16 +20,31 @@ def register(func):
     __functions__[func.__name__] = func
     return func
 
+def np_dtype_of(data_type_str: str):
+    match data_type_str:
+        case 'float32': return np.float32
+        case 'int32': return np.int32
+        case _: return np.float32
+
 class data_storage_order(Enum):
     row_major=0
     column_major=1
 
 @register
 def add_plot_2D(data_path: Path):
-    x_values = bin.read(data_path/'x_values', n_cols=1, dtype=np.float32)
-    y_values = bin.read(data_path/'y_values', n_cols=1, dtype=np.float32)
-    data = json.read(data_path/'data')
     metadata = json.read(data_path/'metadata')
+    dtype = np_dtype_of(metadata.get('data_type'))
+    x_values = bin.read(data_path/'x_values', n_cols=1, dtype=dtype)
+    y_values = bin.read(data_path/'y_values', n_cols=1, dtype=dtype)
+    data = json.read(data_path/'data')
+
+    x_values_nan_mask = bin.read(data_path/'y_values_nan_mask', n_cols=1, dtype=np.uint8)
+    if x_values_nan_mask is not None:
+        x_values = np.ma.masked_array(x_values, mask=x_values_nan_mask)
+
+    y_values_nan_mask = bin.read(data_path/'y_values_nan_mask', n_cols=1, dtype=np.uint8)
+    if y_values_nan_mask is not None:
+        y_values = np.ma.masked_array(y_values, mask=y_values_nan_mask)
 
     plot_label = data.get('label', metadata['name'])
     plot_linestyle = data.get('linestyle', '-')

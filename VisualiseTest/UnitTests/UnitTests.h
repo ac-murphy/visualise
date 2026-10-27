@@ -135,8 +135,17 @@ TEST_F(Experimentation, Plotting)
         plot.z_values = Z;
 
         vis.add(plot);
-        vis.end_frame();
     }
+    vis.end_frame();
+
+    vis.begin_frame("test 2D integer plot");
+    {
+        vis::plot_2D<int> plot;
+        plot.x_values = { 1, 2, 3,       4, 5 };
+        plot.y_values = { 0, 0, 1, INT_MAX, 2 };
+        vis.add(plot);
+    }
+    vis.end_frame();
 
     vis.run();
 }
