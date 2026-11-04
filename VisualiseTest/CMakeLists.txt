@@ -44,15 +44,6 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
         add_subdirectory(${PROJECT_SOURCE_DIR}/Dependencies/GTest/googletest-1.17.0 EXCLUDE_FROM_ALL)
     endif()
 
-    # Specify include paths.
-    # todo: perhaps meant "VisualiseTest" ("instead of Visualise")?
-#    target_include_directories(Visualise PUBLIC
-#            ${PROJECT_SOURCE_DIR}/
-#            ${PROJECT_SOURCE_DIR}/Dependencies/Json/single_include/nlohmann
-#            ${PROJECT_SOURCE_DIR}/Dependencies/GTest/googletest-1.17.0/googletest/include
-#            ${PROJECT_SOURCE_DIR}/Dependencies/Eigen/eigen-5.0.0/Eigen
-#    )
-
     # Link CMake libraries.
     target_link_libraries(VisualiseTest gtest gtest_main)
     target_link_libraries(VisualiseTest Visualise)

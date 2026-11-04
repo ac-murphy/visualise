@@ -58,7 +58,7 @@ namespace vis
         void _run() const override
         {
         #if PYTHON_TEST_MODE == 1
-            std::string exe_line = PYTHON_EXE_DIR"python.exe " PYTHON_SOURCE_DIR"main.py";
+            std::string exe_line = PYTHON_EXE_PATH " " PYTHON_SOURCE_DIR "main.py";
         #else
             std::string exe_line = PYTHON_DIST_DIR"/Visualise/Visualise.exe";
         #endif

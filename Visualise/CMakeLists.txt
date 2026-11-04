@@ -10,17 +10,17 @@ list(FILTER SOURCES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/Dependencies")
 list(FILTER SOURCES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/Python")
 add_library(Visualise STATIC ${SOURCES})
 
-# Define Python CMake variables.
+# Set CMake Python options.
 option(PYTHON_TEST_MODE "Run Python with source files" ON)
 set(PYTHON_SOURCE_DIR "${PROJECT_SOURCE_DIR}/Python/src/")
 set(PYTHON_DIST_DIR "${PROJECT_SOURCE_DIR}/Python/dist/")
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
-    set(PYTHON_EXE_DIR "${PROJECT_SOURCE_DIR}/Python/.venv/Scripts/")
+    set(PYTHON_EXE_PATH "${PROJECT_SOURCE_DIR}/Python/.venv/Scripts/python.exe")
 elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
-    set(PYTHON_EXE_DIR "${PROJECT_SOURCE_DIR}/Python/.venv/bin/")
+    set(PYTHON_EXE_PATH "${PROJECT_SOURCE_DIR}/Python/.venv/bin/python")
 endif()
 
-    # Build info.
+# Build info.
 message(STATUS "Project Source Directory: ${PROJECT_SOURCE_DIR}")
 message(STATUS "System: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
@@ -29,7 +29,7 @@ message(STATUS "Running Python with source files: ${PYTHON_TEST_MODE}")
 
 # Define CMake variables.
 target_compile_definitions(Visualise PUBLIC
-        PYTHON_EXE_DIR="${PYTHON_EXE_DIR}"
+        PYTHON_EXE_PATH="${PYTHON_EXE_PATH}"
         PYTHON_DIR="${PROJECT_SOURCE_DIR}/Python/"
         PYTHON_SOURCE_DIR="${PYTHON_SOURCE_DIR}"
         PYTHON_DIST_DIR="${PYTHON_DIST_DIR}"
