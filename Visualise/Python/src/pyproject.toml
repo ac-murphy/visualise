@@ -1,0 +1,10 @@
+[project]
+name = "visualise"
+version = "0.1.0"
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "pyqt6",
+    "fake-bpy-module-latest"
+]
