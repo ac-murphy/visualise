@@ -1,7 +1,34 @@
 cmake_minimum_required(VERSION 4.1)
 project(VisualiseTest DESCRIPTION "Visualisation library test suite.")
 
+# Set CMake project options.
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
+
+# Add sources (and exclude dependencies).
+file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/*.h" "${PROJECT_SOURCE_DIR}/*.cpp")
+list(FILTER SOURCES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/Dependencies")
+add_executable(VisualiseTest ${SOURCES})
+
+# Build info.
+message(STATUS "Project Source Directory: ${PROJECT_SOURCE_DIR}")
+message(STATUS "System: ${CMAKE_SYSTEM_NAME}")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+
+# Define CMake variables.
+target_compile_definitions(Visualise PUBLIC
+        OUTPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Output/"
+)
+
+# Specify include paths.
+target_include_directories(VisualiseTest PUBLIC
+        ${PROJECT_SOURCE_DIR}/
+        ${PROJECT_SOURCE_DIR}/Dependencies/Json/single_include/nlohmann
+        ${PROJECT_SOURCE_DIR}/Dependencies/GTest/googletest-1.17.0/googletest/include
+        ${PROJECT_SOURCE_DIR}/Dependencies/Eigen/eigen-5.0.0/Eigen
+)
 
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
     # Compiler specific flags.
@@ -12,32 +39,21 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
         set(CMAKE_SHARED_LINKER_FLAGS_DEBUG   "/MANIFEST /NXCOMPAT /DYNAMICBASE /DEBUG:FULL /DLL /MACHINE:X64 /INCREMENTAL:NO /SUBSYSTEM:CONSOLE /ERRORREPORT:PROMPT /NOLOGO /MANIFESTUAC:\"level='asInvoker' uiAccess='false'\" ")
     endif()
 
-    # Build info.
-    message(STATUS "Project Source Directory: ${PROJECT_SOURCE_DIR}")
-    message(STATUS "System: ${CMAKE_SYSTEM_NAME}")
-    message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
-    message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
-
-    file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/*.h" "${PROJECT_SOURCE_DIR}/*.cpp")
-    list(FILTER SOURCES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/Dependencies")
-    add_executable(VisualiseTest ${SOURCES})
-
-    set(CMAKE_CXX_STANDARD 20)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
+    # Add gtest project.
     if (NOT TARGET gtest)
         add_subdirectory(${PROJECT_SOURCE_DIR}/Dependencies/GTest/googletest-1.17.0 EXCLUDE_FROM_ALL)
     endif()
 
-    target_include_directories(Visualise PUBLIC
-            ${PROJECT_SOURCE_DIR}/
-            ${PROJECT_SOURCE_DIR}/Dependencies/Json/single_include/nlohmann
-            ${PROJECT_SOURCE_DIR}/Dependencies/GTest/googletest-1.17.0/googletest/include
-            ${PROJECT_SOURCE_DIR}/Dependencies/Eigen/eigen-5.0.0/Eigen
-    )
-    target_compile_definitions(Visualise PUBLIC
-            OUTPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Output/"
-    )
+    # Specify include paths.
+    # todo: perhaps meant "VisualiseTest" ("instead of Visualise")?
+#    target_include_directories(Visualise PUBLIC
+#            ${PROJECT_SOURCE_DIR}/
+#            ${PROJECT_SOURCE_DIR}/Dependencies/Json/single_include/nlohmann
+#            ${PROJECT_SOURCE_DIR}/Dependencies/GTest/googletest-1.17.0/googletest/include
+#            ${PROJECT_SOURCE_DIR}/Dependencies/Eigen/eigen-5.0.0/Eigen
+#    )
+
+    # Link CMake libraries.
     target_link_libraries(VisualiseTest gtest gtest_main)
     target_link_libraries(VisualiseTest Visualise)
 endif()
@@ -51,9 +67,12 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
         set(CMAKE_SHARED_LINKER_FLAGS_DEBUG   "-W -Wno-as-needed" )
     endif()
 
-    # Build info.
-    message(STATUS "Project Source Directory: ${PROJECT_SOURCE_DIR}")
-    message(STATUS "System: ${CMAKE_SYSTEM_NAME}")
-    message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
-    message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+    # Add gtest project.
+    if (NOT TARGET gtest)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/Dependencies/GTest/googletest-1.17.0 EXCLUDE_FROM_ALL)
+    endif()
+
+    # Link CMake libraries.
+    target_link_libraries(VisualiseTest gtest gtest_main)
+    target_link_libraries(VisualiseTest Visualise)
 endif()

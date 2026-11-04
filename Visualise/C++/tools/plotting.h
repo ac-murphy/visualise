@@ -3,7 +3,7 @@
 #include "framework/converting_types.h"
 #include "framework/visualise_base.h"
 #include "system/system.h"
-#include "system/BIN.h"
+#include "system/bin.h"
 
 namespace vis
 {
