@@ -65,12 +65,12 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
 
     # Target to generate Python executable.
     add_custom_target(VisualiseExecutable
-            COMMAND "${PYTHON_EXE_DIR}/python.exe" -m PyInstaller
+            COMMAND "${PYTHON_EXE_PATH}" -m PyInstaller
             --onedir
             --name Visualise
             --distpath "${PYTHON_DIST_DIR}"
             --noconfirm
-            "${PYTHON_SOURCE_DIR}/main.py"
+            "${PYTHON_SOURCE_DIR}\\main.py"
     )
 endif()
 
