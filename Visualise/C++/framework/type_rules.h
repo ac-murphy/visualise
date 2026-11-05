@@ -82,9 +82,14 @@ namespace vis
         template <> struct type_name_trait<native_name> { static constexpr std::string_view value = descriptive_name; }
 
     template <typename> struct type_name_trait;
-    TYPE_NAME_TRAIT(uint8_t,  "uint8");
+    TYPE_NAME_TRAIT(int8_t,   "int8");
+    TYPE_NAME_TRAIT(int16_t,  "int16");
     TYPE_NAME_TRAIT(int32_t,  "int32");
+    TYPE_NAME_TRAIT(int64_t,  "int64");
+    TYPE_NAME_TRAIT(uint8_t,  "uint8");
+    TYPE_NAME_TRAIT(uint16_t, "uint16");
     TYPE_NAME_TRAIT(uint32_t, "uint32");
+    TYPE_NAME_TRAIT(uint64_t, "uint64");
     TYPE_NAME_TRAIT(float,    "float32");
 
     template <typename T> constexpr std::string_view type_name_v = type_name_trait<std::remove_cvref_t<T>>::value;

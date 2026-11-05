@@ -41,9 +41,7 @@ target_compile_definitions(Visualise PUBLIC
         PYTHON_SOURCE_DIR="${PYTHON_SOURCE_DIR}"
         PYTHON_DIST_DIR="${PYTHON_DIST_DIR}"
         PYTHON_TEST_MODE=$<BOOL:${PYTHON_TEST_MODE}>
-
         BLENDER_EXE_PATH="${BLENDER_EXE_PATH}"
-
         SETTINGS_DIR="${PROJECT_SOURCE_DIR}/Settings/"
 )
 
@@ -73,7 +71,6 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
             "${PYTHON_SOURCE_DIR}\\main.py"
     )
 endif()
-
 
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     # Compiler specific flags.
