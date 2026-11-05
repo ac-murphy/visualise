@@ -3,7 +3,7 @@
 #include "framework/converting_types.h"
 #include "framework/visualise_base.h"
 #include "system/system.h"
-#include "system/BIN.h"
+#include "system/bin.h"
 
 namespace vis
 {
@@ -58,7 +58,7 @@ namespace vis
         void _run() const override
         {
         #if PYTHON_TEST_MODE == 1
-            std::string exe_line = PYTHON_EXE_DIR"python.exe " PYTHON_SOURCE_DIR"main.py";
+            std::string exe_line = PYTHON_EXE_PATH " " PYTHON_SOURCE_DIR "main.py";
         #else
             std::string exe_line = PYTHON_DIST_DIR"/Visualise/Visualise.exe";
         #endif
@@ -205,7 +205,7 @@ namespace vis
             using value_type = typename container_type::value_type;
             std::vector<bool> nan_mask(data.size());
 
-            for (auto i = 0; i < data.size(); ++i)
+            for (size_t i = 0; i < data.size(); ++i)
                 nan_mask[i] = data[i] == std::numeric_limits<value_type>::max() || std::isnan(data[i]);
 
             return nan_mask;
