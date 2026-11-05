@@ -30,6 +30,15 @@ target_include_directories(VisualiseTest PUBLIC
         ${PROJECT_SOURCE_DIR}/Dependencies/Eigen/eigen-5.0.0/Eigen
 )
 
+# Add gtest project.
+if (NOT TARGET gtest)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/Dependencies/GTest/googletest-1.17.0 EXCLUDE_FROM_ALL)
+endif()
+
+# Link CMake libraries.
+target_link_libraries(VisualiseTest gtest gtest_main)
+target_link_libraries(VisualiseTest Visualise)
+
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
     # Compiler specific flags.
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -38,15 +47,6 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
         set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "/MANIFEST /NXCOMPAT /DYNAMICBASE /DEBUG:FULL /DLL /MACHINE:X64 /INCREMENTAL:NO /SUBSYSTEM:CONSOLE /ERRORREPORT:PROMPT /NOLOGO /MANIFESTUAC:NO /LTCG:incremental /OPT:ICF /OPT:REF")
         set(CMAKE_SHARED_LINKER_FLAGS_DEBUG   "/MANIFEST /NXCOMPAT /DYNAMICBASE /DEBUG:FULL /DLL /MACHINE:X64 /INCREMENTAL:NO /SUBSYSTEM:CONSOLE /ERRORREPORT:PROMPT /NOLOGO /MANIFESTUAC:\"level='asInvoker' uiAccess='false'\" ")
     endif()
-
-    # Add gtest project.
-    if (NOT TARGET gtest)
-        add_subdirectory(${PROJECT_SOURCE_DIR}/Dependencies/GTest/googletest-1.17.0 EXCLUDE_FROM_ALL)
-    endif()
-
-    # Link CMake libraries.
-    target_link_libraries(VisualiseTest gtest gtest_main)
-    target_link_libraries(VisualiseTest Visualise)
 endif()
 
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
@@ -57,13 +57,4 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
         set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Ofast -W -Wno-as-needed" )
         set(CMAKE_SHARED_LINKER_FLAGS_DEBUG   "-W -Wno-as-needed" )
     endif()
-
-    # Add gtest project.
-    if (NOT TARGET gtest)
-        add_subdirectory(${PROJECT_SOURCE_DIR}/Dependencies/GTest/googletest-1.17.0 EXCLUDE_FROM_ALL)
-    endif()
-
-    # Link CMake libraries.
-    target_link_libraries(VisualiseTest gtest gtest_main)
-    target_link_libraries(VisualiseTest Visualise)
 endif()

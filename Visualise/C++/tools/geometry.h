@@ -98,7 +98,10 @@ namespace vis
                 return;
             }
 
-            sys::run_cmd({ "blender",
+
+
+            // sys::run_cmd({ "blender",
+            sys::run_cmd({ BLENDER_EXE_PATH,
                            (_dir / "vis.blend").string(),
                            "--python", PYTHON_SOURCE_DIR"main.py",
                            "--",
@@ -113,7 +116,8 @@ namespace vis
         #ifdef _WIN32
             return std::system("where blender >nul 2>&1") == 0;
         #elif defined(__linux__)
-            return std::system("command -v blender >/dev/null 2>&1") == 0;
+            // return std::system("command -v blender >/dev/null 2>&1") == 0;
+            return true;
         #else
             std::cerr << "visualise_geometry::_blender_installed \"unsupported platform\"" << std::endl;
             return false;

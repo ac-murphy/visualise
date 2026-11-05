@@ -5,6 +5,11 @@
 
 
 class Experimentation : public ::testing::Test {};
+TEST_F(Experimentation, TMP)
+{
+    std::cout << std::system("flatpak info org.blender.Blender") << std::endl;
+    std::cout << std::system("flatpak info org.Blender") << std::endl;
+}
 TEST_F(Experimentation, Geometric)
 {
     vis::visualise_geometry vis;
