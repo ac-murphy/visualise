@@ -136,7 +136,116 @@ Type: `add_plot_3D`
 
 ## Geometry
 
+Note, some data types in this section can seem verbose, so for easier reading the following alias has been made: `conv = vis::converting`.
+
 ### Configs
+
+`vis::point_cloud`
+> 1. `value_type (any)` Data type for scalar values.
+
+> - `points (conv::vector<conv::array<value_type, 3>>)` List of 3-dimensional points.
+> - `rgba (conv::array<float, 4>)` Colour of point markers.
+
+---
+
+`vis::box`
+> 1. `value_type (any)` Data type for scalar values.
+
+> - `vertices (conv::array<conv::array<value_type, 3>, 8>)` List of 8 points that describe the corners of the box. (#todo: describe winding order)
+
+---
+
+`vis::surface` *(inherits `vis::dataset_3D<value_type>`)*
+> 1. `value_type (any)` Data type for scalar values.
+
+> - `points (std::vector<std::array<value_type, 3>>)` List of 3-dimensional points. Note: do not set this value manually; the constructor generates this automatically.
+
+This struct must be instantiated via its constructor.
+
+---
+
+`vis::plane`
+> 1. `value_type (any)` Data type for scalar values.
+
+> - `location (conv::array<value_type, 3>)` Centre of the plane.
+> - `normal (conv::array<value_type, 3>)` Direction the plane is facing.
+
+---
+
+#### Empty objects
+
+`vis::empty_base`
+> 1. `value_type (any)` Data type for scalar values.
+
+> - `location (conv::array<value_type, 3>)` Position in global space.
+> - `size (float)` Size of empty. This is usually the radius of the object, but is object-dependent.
+
+This should not be used on its own.
+
+---
+
+`vis::marker` *(inherits `vis::empty_base<value_type>`)*
+> 1. `value_type (any)` Data type for scalar values.
+
+An axis-aligned empty axes object.
+
+---
+
+`vis::arrow` *(inherits `vis::empty_base<value_type>`)*
+> 1. `value_type (any)` Data type for scalar values.
+
+> - `direction (conv::array<value_type, 3>)` Direction to point.
+
+A plain arrow pointing in a specific direction.
+
+---
+
+`vis::axes` *(inherits `vis::empty_base<value_type>`)*
+> 1. `value_type (any)` Data type for scalar values.
+
+> - `rotation (conv::matrix<value_type, 3, 3>)` Rotation (local basis).
+
+Similar to `vis::marker` but is not necessarily axis-aligned and has *x, y, z* labels for each axis.
+
+---
+
+`vis::sphere` *(inherits `vis::empty_base<value_type>`)*
+> 1. `value_type (any)` Data type for scalar values.
+
+> - `radius (float&)` Variable alias for `vis::empty_base<value_type>::size` - either can be set to specify the radius of the sphere.
+ 
+A wireframe sphere.
+
+---
+
+#### Mesh objects
+
+`vis::mesh_base`
+> 1. `value_type (any)` Data type for scalar values.
+
+> - `points (conv::vector<conv::array<value_type, 3>>)` List of 3-dimensional points.
+
+This should not be used on its own.
+
+---
+
+`vis::tri_mesh` *(inherits `vis::mesh_base<value_type>`)*
+> 1. `value_type (any)` Data type for scalar values.
+
+> - `tri_indices (conv::vector<conv::array<vis::types::id, 3>>)` List of integer-triples that each represent the indices of vertices (in `vis::mesh_base<value_type>::points`) that make up a triangular face.
+
+A way of representing a mesh with triangular faces.
+
+---
+
+`vis::quad_mesh` *(inherits `vis::mesh_base<value_type>`)*
+> 1. `value_type (any)` Data type for scalar values.
+
+> - `quad_indices (conv::vector<conv::array<vis::types::id, 4>>)` List of integer-quadruples that each represent the indices of vertices (in `vis::mesh_base<value_type>::points`) that make up a 4-sided face.
+
+A way of representing a mesh with 4-sided faces.
+
+---
 
 ### Frame methods
 
