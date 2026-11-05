@@ -205,7 +205,7 @@ namespace vis
             using value_type = typename container_type::value_type;
             std::vector<bool> nan_mask(data.size());
 
-            for (auto i = 0; i < data.size(); ++i)
+            for (size_t i = 0; i < data.size(); ++i)
                 nan_mask[i] = data[i] == std::numeric_limits<value_type>::max() || std::isnan(data[i]);
 
             return nan_mask;

@@ -27,7 +27,7 @@ namespace vis::converting
     template <typename to_container_type, typename from_container_type>
     void convert(to_container_type& to_container, const from_container_type& from_container)
     {
-        if (to_container.size() != from_container.size())
+        if (static_cast<size_t>(to_container.size()) != static_cast<size_t>(from_container.size()))
             throw std::runtime_error(std::format("array::array \"could not convert \'{}\' to \'{}\'; size mismatch\"",
                                      typeid(from_container_type).name(),
                                      typeid(to_container_type).name()));
@@ -37,21 +37,21 @@ namespace vis::converting
 
         else if constexpr (vis::supports_linear_parentheses_index<from_container_type>)
         {
-            const auto size = from_container.size();
-            for (int32_t i = 0; i < size; ++i)
+            const auto size = static_cast<size_t>(from_container.size());
+            for (size_t i = 0; i < size; ++i)
                 to_container[i] = from_container(i);
         }
 
         else if constexpr (vis::supports_linear_bracket_index<from_container_type>)
         {
-            const auto size = from_container.size();
-            for (int32_t i = 0; i < size; ++i)
+            const auto size = static_cast<size_t>(from_container.size());
+            for (size_t i = 0; i < size; ++i)
                 to_container[i] = from_container[i];
         }
 
         else if constexpr (vis::supports_iteration<from_container_type>)
         {
-            int32_t i = 0;
+            size_t i = 0;
             for (const auto& value : from_container)
                 to_container[i++] = value;
         }
@@ -59,8 +59,8 @@ namespace vis::converting
         else if constexpr (vis::supports_multidimensional_parentheses_index<from_container_type>)
         {
             const auto& [I, J] = dimensions(from_container);
-            for (int32_t i = 0; i < I; ++i)
-                for (int32_t j = 0; j < J; ++j)
+            for (size_t i = 0; i < I; ++i)
+                for (size_t j = 0; j < J; ++j)
                     to_container[i * J + j] = from_container(i, j);
 
         }
@@ -68,8 +68,8 @@ namespace vis::converting
         else if constexpr (vis::supports_multidimensional_bracket_index<from_container_type>)
         {
             const auto& [I, J] = dimensions(from_container);
-            for (int32_t i = 0; i < I; ++i)
-                for (int32_t j = 0; j < J; ++j)
+            for (size_t i = 0; i < I; ++i)
+                for (size_t j = 0; j < J; ++j)
                     to_container[i * J + j] = from_container[i][j];
         }
 
