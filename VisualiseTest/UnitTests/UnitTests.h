@@ -152,6 +152,15 @@ TEST_F(Experimentation, Plotting)
     }
     vis.end_frame();
 
+    vis.begin_frame("test 2D mixed type plot");
+    {
+        vis::plot_2D<int32_t, float> plot;
+        plot.x_values = { 0,    1,    2,    3,    4,    5    };
+        plot.y_values = { 1.0f, 2.0f, 1.0f, 3.0f, 3.0f, 4.0f };
+        vis.add(plot);
+    }
+    vis.end_frame();
+
     vis.run();
 }
 // TEST_F(UnitTest, Converting_Array)

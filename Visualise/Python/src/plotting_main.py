@@ -6,13 +6,28 @@ import system.json as json
 import system.bin as bin
 import matplotlib.pyplot as plt
 import numpy as np
-
 import matplotlib
 matplotlib.use("QtAgg")
 
 __metadata__ = {}
 __functions__ = {}
 __defaults__ = {}
+__supported_data_types__ = {
+    # specific types:
+    'int8':    np.int8,
+    'int16':   np.int16,
+    'int32':   np.int32,
+    'int64':   np.int64,
+    'uint8':   np.uint8,
+    'uint16':  np.uint16,
+    'uint32':  np.uint32,
+    'uint64':  np.uint64,
+    'float32': np.float32,
+
+    # assumed types:
+    'int':    np.int32,
+    'float':  np.float32,
+}
 __fig__: Figure
 __ax__: Axes3D
 
@@ -20,26 +35,30 @@ def register(func):
     __functions__[func.__name__] = func
     return func
 
-def np_dtype_of(data_type_str: str):
-    match data_type_str:
-        case 'float32': return np.float32
-        case 'int32':   return np.int32
-        case 'uint32':  return np.uint32
-        case _: return np.float32
-
 class data_storage_order(Enum):
     row_major=0
     column_major=1
 
+
+def _get_dtypes(data_path: Path):
+    metadata = json.read(data_path/'metadata')
+    dtype_strings = metadata.get('data_types')
+    dtypes = []
+    for dtype_str in dtype_strings:
+        dtypes.append(__supported_data_types__[dtype_str])
+
+    return dtypes
+
 @register
 def add_plot_2D(data_path: Path):
     metadata = json.read(data_path/'metadata')
-    dtype = np_dtype_of(metadata.get('data_type'))
-    x_values = bin.read(data_path/'x_values', n_cols=1, dtype=dtype)
-    y_values = bin.read(data_path/'y_values', n_cols=1, dtype=dtype)
+
+    x_dtype, y_dtype = _get_dtypes(data_path)
+    x_values = bin.read(data_path/'x_values', n_cols=1, dtype=x_dtype)
+    y_values = bin.read(data_path/'y_values', n_cols=1, dtype=y_dtype)
     data = json.read(data_path/'data')
 
-    x_values_nan_mask = bin.read(data_path/'y_values_nan_mask', n_cols=1, dtype=np.uint8)
+    x_values_nan_mask = bin.read(data_path/'x_values_nan_mask', n_cols=1, dtype=np.uint8)
     if x_values_nan_mask is not None:
         x_values = np.ma.masked_array(x_values, mask=x_values_nan_mask)
 
@@ -50,20 +69,23 @@ def add_plot_2D(data_path: Path):
     plot_label = data.get('label', metadata['name'])
     plot_linestyle = data.get('linestyle', '-')
 
+    # draw plot:
     __ax__.plot(x_values, y_values, label=plot_label, linestyle=plot_linestyle or '-')
 
 @register
 def add_plot_3D(data_path: Path):
-    x_values = bin.read(data_path/'x_values', n_cols=1, dtype=np.float32)
-    y_values = bin.read(data_path/'y_values', n_cols=1, dtype=np.float32)
+
+    x_dtype, y_dtype, z_dtype = _get_dtypes(data_path)
+    x_values = bin.read(data_path/'x_values', n_cols=1, dtype=x_dtype)
+    y_values = bin.read(data_path/'y_values', n_cols=1, dtype=y_dtype)
 
     data = json.read(data_path/'data')
     storage_order = data_storage_order(data.get('data_storage_order', __defaults__['data_storage_order']))
     colour_map = data.get('colour_map', __defaults__['colour_map'])
     if storage_order == data_storage_order.row_major:
-        Z_values = bin.read(data_path/'z_values', n_cols=len(x_values), dtype=np.float32)
+        Z_values = bin.read(data_path/'z_values', n_cols=len(x_values), dtype=z_dtype)
     else:
-        Z_values = bin.read(data_path/'z_values', n_cols=len(y_values), dtype=np.float32).T
+        Z_values = bin.read(data_path/'z_values', n_cols=len(y_values), dtype=z_dtype).T
 
     X_values, Y_values = np.meshgrid(x_values, y_values)
     print(X_values.shape, Y_values.shape, Z_values.shape)

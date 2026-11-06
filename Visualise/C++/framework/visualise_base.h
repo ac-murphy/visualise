@@ -17,7 +17,7 @@ namespace vis
     {
         std::string name;
         std::string type;
-        std::string data_type;
+        std::vector<std::string> data_types;
     };
     template <typename value_type>
     struct dataset_2D
@@ -159,7 +159,7 @@ namespace vis
             nlohmann::json metadata;
             metadata["type"] = _operation.type;
             metadata["name"] = _operation.name.empty() ? std::format("operation_{}", _operation_count) : _operation.name;
-            metadata["data_type"] = _operation.data_type;
+            metadata["data_types"] = _operation.data_types;
             this->_end_operation(metadata);
             io::json::write(metadata, visualise_base::_operation_dir(), "metadata", 4);
 
@@ -200,6 +200,14 @@ namespace vis
         std::filesystem::path _operation_dir() const
         {
             return visualise_base::_frame_dir() / ("operation_" + std::to_string(_operation_count));
+        }
+        template <typename value_type>
+        void _register_type()
+        {
+            if constexpr (vis::type_name_v<value_type> != "")
+                _operation.data_types.push_back(std::string(vis::type_name_v<value_type>));
+            else
+                throw std::runtime_error(std::format("visualise_plotting::_use_type \"unrecognised data type \'{}\'\"", typeid(value_type).name()));
         }
 
     protected:
