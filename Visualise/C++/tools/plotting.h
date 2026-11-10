@@ -14,15 +14,23 @@ namespace vis
     };
     enum storage_order
     {
-        row_major = 0,
+        row_major    = 0,
         column_major = 1
+    };
+    enum axis_scale_type
+    {
+        linear      = 0,
+        logarithmic = 1
     };
     struct canvas : frame_base
     {
+        // Properties.
         std::array<std::string, 3> axis_labels;
+        std::array<axis_scale_type, 3> axis_scale_types;
         vis::projection projection;
         bool legend_visible;
 
+        // Internal flags.
         bool projection_set = false;
     };
 
@@ -33,13 +41,16 @@ namespace vis
         std::string label = "";
         vis::storage_order data_storage_order = vis::storage_order::row_major;
     };
-    template <typename value_type> struct plot_2D : plot_base<value_type>
+    template <typename x_value_type, typename y_value_type = x_value_type> struct plot_2D : plot_base<x_value_type>
     {
-        vis::converting::vector<value_type> x_values, y_values;
+        vis::converting::vector<x_value_type> x_values;
+        vis::converting::vector<y_value_type> y_values;
     };
-    template <typename value_type> struct plot_3D : plot_base<value_type>
+    template <typename x_value_type, typename y_value_type = x_value_type, typename z_value_type = x_value_type> struct plot_3D : plot_base<x_value_type>
     {
-        converting::vector<value_type> x_values, y_values, z_values;
+        vis::converting::vector<x_value_type> x_values;
+        vis::converting::vector<y_value_type> y_values;
+        vis::converting::vector<z_value_type> z_values;
     };
 
     class visualise_plotting : public visualise_base<canvas>
@@ -48,6 +59,7 @@ namespace vis
         void _end_frame(nlohmann::json& metadata) const override
         {
             metadata["axis_labels"] = _frame.axis_labels;
+            metadata["axis_scale_types"] = _frame.axis_scale_types;
             metadata["projection"] = _frame.projection == dim_3 ? "3d" : "2d";
             metadata["legend_visible"] = _frame.legend_visible;
         }
@@ -70,12 +82,14 @@ namespace vis
 
     /// Main methods.
     public:
-        template <typename value_type>
-        void add(const vis::plot_2D<value_type>& plot)
+        template <typename x_value_type, typename y_value_type>
+        void add(const vis::plot_2D<x_value_type, y_value_type>& plot)
         {
             visualise_base::begin_operation("add_plot_2D");
-            visualise_plotting::_use_type<value_type>();
             visualise_plotting::_use_projection(dim_2);
+
+            visualise_plotting::_register_type<x_value_type>();
+            visualise_plotting::_register_type<y_value_type>();
 
             const auto x_values_std = plot.x_values.to_std();
             const auto y_values_std = plot.y_values.to_std();
@@ -95,11 +109,15 @@ namespace vis
 
             visualise_base::end_operation();
         }
-        template <typename value_type>
-        void add(const vis::plot_3D<value_type>& plot)
+        template <typename x_value_type, typename y_value_type = x_value_type, typename z_value_type = y_value_type>
+        void add(const vis::plot_3D<x_value_type, y_value_type, z_value_type>& plot)
         {
             visualise_base::begin_operation("add_plot_3D");
             visualise_plotting::_use_projection(dim_3);
+
+            visualise_plotting::_register_type<x_value_type>();
+            visualise_plotting::_register_type<y_value_type>();
+            visualise_plotting::_register_type<z_value_type>();
 
             io::bin::write(plot.x_values.to_std(), _active_dir, "x_values");
             io::bin::write(plot.y_values.to_std(), _active_dir, "y_values");
@@ -156,6 +174,20 @@ namespace vis
             _frame.axis_labels[1] = y_label;
             _frame.axis_labels[2] = z_label;
         }
+        void set_axis_scale_types(const vis::axis_scale_type& x_axis_scale_type,
+                                  const vis::axis_scale_type& y_axis_scale_type)
+        {
+            _frame.axis_scale_types[0] = x_axis_scale_type;
+            _frame.axis_scale_types[1] = y_axis_scale_type;
+        }
+        void set_axis_scale_types(const vis::axis_scale_type& x_axis_scale_type,
+                                  const vis::axis_scale_type& y_axis_scale_type,
+                                  const vis::axis_scale_type& z_axis_scale_type)
+        {
+            _frame.axis_scale_types[0] = x_axis_scale_type;
+            _frame.axis_scale_types[1] = y_axis_scale_type;
+            _frame.axis_scale_types[2] = z_axis_scale_type;
+        }
         void set_legend_visible(const bool& visible)
         {
             _frame.legend_visible = visible;
@@ -184,14 +216,6 @@ namespace vis
             {
                 throw std::runtime_error("visualise_plotting::_use_projection \"all plots on the same canvas must use the same projection\"");
             }
-        }
-        template <typename type>
-        void _use_type()
-        {
-            if constexpr (vis::type_name_v<type> != "")
-                _operation.data_type = vis::type_name_v<type>;
-            else
-                throw std::runtime_error(std::format("visualise_plotting::_use_type \"unrecognised data type \'{}\'\"", typeid(type).name()));
         }
 
     private:
