@@ -1,5 +1,8 @@
 {
-    "data_type": "float32",
+    "data_types": [
+        "float32",
+        "float32"
+    ],
     "name": "operation_0",
     "type": "add_plot_2D"
 }

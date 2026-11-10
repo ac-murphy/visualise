@@ -4,6 +4,11 @@
         "$y$",
         ""
     ],
+    "axis_scale_types": [
+        0,
+        0,
+        0
+    ],
     "legend_visible": true,
     "name": "test 2D plot",
     "operation_count": 1,
