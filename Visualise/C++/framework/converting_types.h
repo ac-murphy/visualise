@@ -152,6 +152,13 @@ namespace vis::converting
             return make_std(_data);
         }
 
+        template <typename T_>
+        requires (std::convertible_to<T_, T>)
+        void push_back(const T_& value)
+        {
+            _data.push_back(static_cast<T>(value));
+        }
+
     public:
         reference       operator[](size_type i)       { return _data[i]; }
         const_reference operator[](size_type i) const { return _data[i]; }
