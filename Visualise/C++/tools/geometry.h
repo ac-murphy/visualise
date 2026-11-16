@@ -4,6 +4,7 @@
 
 #include "include_guard.h"
 #include "json.hpp"
+#include "Eigen"
 #include "framework/visualise_base.h"
 #include "framework/type_rules.h"
 #include "framework/converting_types.h"
@@ -292,6 +293,35 @@ namespace vis::geometry
             plane.normal = normal;
 
             frame::add(plane);
+        }
+        template <typename vector_type, typename matrix_type>
+        void add_box(const vector_type& location,
+                     const vector_type& dimensions,
+                     const matrix_type& rotation)
+        {
+            using value_type = typename vector_type::value_type;
+            vis::geometry::box<value_type> box;
+
+            // Read arguments.
+            auto [ lx, ly, lz ] = location;
+            auto [ dx, dy, dz ] = dimensions;
+            Eigen::Matrix<value_type, 3, 3> rotation_matrix;
+            for (size_t i = 0; i < 3; ++i)
+                for (size_t j = 0; j < 3; ++j)
+                    rotation_matrix(i, j) = rotation(i, j);
+
+            // Convert each vertex.
+            size_t idx = 0;
+            for (auto i : { 1.0f, -1.0f })
+                for (auto j : { -1.0f, 1.0f })
+                    for (auto k : { -1.0f, 1.0f })
+                    {
+                        Eigen::Vector<value_type, 3> vertex = { lx + (0.5f * dx * i), ly + (0.5f * dy * j), lz + (0.5f * dz * k) };
+                        vertex = rotation_matrix * vertex;
+                        box.vertices[idx] = vertex;
+                    }
+
+            frame::add(box);
         }
 
         // todo: finish.

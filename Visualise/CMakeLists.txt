@@ -50,6 +50,7 @@ target_include_directories(Visualise PUBLIC
         ${PROJECT_SOURCE_DIR}/
         ${PROJECT_SOURCE_DIR}/C++/
         ${PROJECT_SOURCE_DIR}/Dependencies/Json/single_include/nlohmann
+        ${PROJECT_SOURCE_DIR}/Dependencies/Eigen/eigen-5.0.0/Eigen
 )
 
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
