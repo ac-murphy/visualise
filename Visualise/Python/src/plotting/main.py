@@ -1,12 +1,14 @@
 from pathlib import Path
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from matplotlib.figure import Figure
+from matplotlib.gridspec import GridSpec
 from enum import Enum
 import system.json as json
 import system.bin as bin
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
+import types
 
 matplotlib.use("QtAgg")
 
@@ -31,6 +33,7 @@ __supported_data_types__ = {
 }
 __fig__: Figure
 __ax__: Axes3D
+__gs__: GridSpec
 
 
 def register(func):
@@ -65,8 +68,7 @@ def _get_dtypes(data_path: Path):
 
 
 @register
-def add_plot_2D(data_path: Path):
-    metadata = json.read(data_path / 'metadata')
+def add_plot_2D(plot_metadata: json, data_path: Path):
 
     x_dtype, y_dtype = _get_dtypes(data_path)
     x_values = bin.read(data_path / 'x_values', n_cols=1, dtype=x_dtype)
@@ -81,7 +83,7 @@ def add_plot_2D(data_path: Path):
     if y_values_nan_mask is not None:
         y_values = np.ma.masked_array(y_values, mask=y_values_nan_mask)
 
-    plot_label = data.get('label', metadata['name'])
+    plot_label = data.get('label', plot_metadata['name'])
     plot_linestyle = data.get('linestyle', '-')
 
     # draw plot:
@@ -89,7 +91,7 @@ def add_plot_2D(data_path: Path):
 
 
 @register
-def add_plot_3D(data_path: Path):
+def add_plot_3D(plot_metadata: json, data_path: Path):
     x_dtype, y_dtype, z_dtype = _get_dtypes(data_path)
     x_values = bin.read(data_path / 'x_values', n_cols=1, dtype=x_dtype)
     y_values = bin.read(data_path / 'y_values', n_cols=1, dtype=y_dtype)
@@ -109,27 +111,31 @@ def add_plot_3D(data_path: Path):
     __ax__.plot_surface(X_values, Y_values, Z_values, cmap=colour_map)
 
 
-def create_canvas(metadata):
-    canvas_projection = metadata['projection']
-    canvas_name = metadata['name']
+def new_fig(rows, cols):
+    global __fig__
+    __fig__ = plt.figure()
+
+    global __gs__
+    __gs__ = __fig__.add_gridspec(rows, cols)
+
+
+def new_ax(frame_path: Path, frame_metadata: json, rows=1, cols=1, index=1):
+    canvas_projection = frame_metadata['projection']
+    canvas_name = frame_metadata['name']
 
     # set up fig and ax:
-    global __fig__, __ax__
-    if canvas_projection == '3d':
-        __fig__ = plt.figure()
-        __ax__ = __fig__.add_subplot(1, 1, 1, projection='3d')
-    else:
-        __fig__, __ax__ = plt.subplots()
+    global __ax__
+    __ax__ = __fig__.add_subplot(rows, cols, index, projection=canvas_projection)
 
     # set axis labels:
-    x_label, y_label, z_label = metadata['axis_labels'] or ('x', 'y', 'z')
+    x_label, y_label, z_label = frame_metadata['axis_labels'] or ('x', 'y', 'z')
     __ax__.set_xlabel(x_label)
     __ax__.set_ylabel(y_label)
     if canvas_projection == '3d':
         __ax__.set_zlabel(z_label)
 
     # set axis scale types:
-    x_scale_type, y_scale_type, z_scale_type = [axis_scale_type(s) for s in metadata['axis_scale_types']]
+    x_scale_type, y_scale_type, z_scale_type = [axis_scale_type(s) for s in frame_metadata['axis_scale_types']]
     __ax__.set_xscale(__axis_scale_type_keywords__[x_scale_type])
     __ax__.set_yscale(__axis_scale_type_keywords__[y_scale_type])
     if canvas_projection == '3d':
@@ -139,44 +145,45 @@ def create_canvas(metadata):
     __fig__.canvas.manager.set_window_title(canvas_name)
     __fig__.suptitle(canvas_name)
 
+    # draw plots:
+    for j in range(frame_metadata['operation_count']):
+        plot_path = frame_path / f'operation_{j}'
+        plot_metadata = json.read(plot_path / 'metadata')
+        plot_type = plot_metadata['func']
+        plot_func = __functions__[plot_type]
+        plot_func(plot_metadata, data_path=plot_path)
 
-def finish_canvas(metadata):
-    canvas_legend_visible = metadata['legend_visible']
-
-    # other:
-    if canvas_legend_visible:
+    # finish:
+    if frame_metadata['legend_visible']:
         __ax__.legend()
 
 
 def run_all(data_path: Path):
     # render canvases:
-    canvases = __metadata__['frame_count']
-    for i in range(canvases):
-        canvas_path = data_path / f'frame_{i}'
-        canvas_metadata = json.read(canvas_path / 'metadata')
+    frames = __metadata__['frame_count']
+    for i in range(frames):
+        # initialise:
+        frame_path = data_path / f'frame_{i}'
+        frame_metadata = json.read(frame_path / 'metadata')
+        subframes = frame_metadata['subframe_count']
+        rows, cols = frame_metadata['size']
+        new_fig(rows, cols)
 
-        # set up:
-        create_canvas(canvas_metadata)
-
-        # draw plots:
-        plots = canvas_metadata['operation_count']
-        for j in range(plots):
-            plot_path = canvas_path / f'operation_{j}'
-            plot_metadata = json.read(plot_path / 'metadata')
-            plot_type = plot_metadata['type']
-            plot_func = __functions__[plot_type]
-            plot_func(data_path=plot_path)
-
-        # finish:
-        finish_canvas(canvas_metadata)
+        # draw frame:
+        if subframes == 0:
+            new_ax(frame_path, frame_metadata)
+        # draw multi-frame:
+        else:
+            for j in range(subframes):
+                subframe_path = frame_path / f'frame_{j}'
+                subframe_metadata = json.read(subframe_path / 'metadata')
+                new_ax(subframe_path, subframe_metadata, rows, cols, j + 1)
 
         # render all plots on canvas:
         plt.show()
 
 
 def main(data_path: Path, settings_path: Path):
-    # todo: clear dirs here.
-
     global __metadata__
     __metadata__ = json.read(data_path / 'metadata')
     global __defaults__
