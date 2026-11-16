@@ -115,7 +115,7 @@ def run_all(data_path: Path):
         for j in range(operations):
             operation_path = frame_path/f'operation_{j}'
             operation_metadata = json.read(operation_path/'metadata')
-            operation_type = operation_metadata['type']
+            operation_type = operation_metadata['func']
             operation_func = __functions__[operation_type]
             operation_func(data_path=operation_path)
 
