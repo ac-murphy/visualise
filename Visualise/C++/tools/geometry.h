@@ -18,6 +18,7 @@ namespace vis::geometry
     {
         vis::converting::vector<vis::converting::array<value_type, 3>> points;
         vis::converting::array<float, 4> rgba;
+        float point_radius;
     };
     template <typename value_type> struct box
     {
@@ -153,6 +154,7 @@ namespace vis::geometry
 
             nlohmann::json data;
             data["rgba"] = point_cloud.rgba;
+            data["point_radius"] = point_cloud.point_radius;
             io::json::write(data, operation._dir, "data", 4);
 
             io::bin::write(point_cloud.points.to_std(), operation._dir, "points");
@@ -184,6 +186,7 @@ namespace vis::geometry
         {
             vis::geometry::point_cloud<typename vector_type::value_type> point_cloud;
             point_cloud.points = points;
+            point_cloud.point_radius = 0.005f;
             point_cloud.rgba = { 1.0f, 1.0f, 1.0f, 1.0f };
 
             frame::add(point_cloud);

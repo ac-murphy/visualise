@@ -61,10 +61,10 @@ def add_arrow(*, data_path: Path):
 def add_points(*, data_path: Path):
     points = bin.read(data_path/'points', n_cols=3, dtype=np.float32)
     data = json.read(data_path/'data')
-    size = data.get('size', __defaults__['empty_obj']['size'])
+    size = data.get('point_radius', __defaults__['empty_obj']['size'])
 
     points_obj = bpyi.render_vertices(points)
-    bpys.apply_point_cloud_shader(points_obj) # todo: pass <size> into apply_point_cloud_shader()
+    bpys.apply_point_cloud_shader(points_obj, size) # todo: pass <size> into apply_point_cloud_shader()
 
 @register
 def add_mesh_from_tris(*, data_path: Path):
