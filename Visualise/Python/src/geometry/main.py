@@ -64,7 +64,8 @@ def add_points(*, data_path: Path):
     size = data.get('point_radius', __defaults__['empty_obj']['size'])
 
     points_obj = bpyi.render_vertices(points)
-    bpys.apply_point_cloud_shader(points_obj, size) # todo: pass <size> into apply_point_cloud_shader()
+    if data['use_shader']:
+        bpys.apply_point_cloud_shader(points_obj, size)
 
 @register
 def add_mesh_from_tris(*, data_path: Path):
