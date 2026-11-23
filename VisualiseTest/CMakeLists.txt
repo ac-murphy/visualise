@@ -19,7 +19,7 @@ message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 
 # Define CMake variables.
 target_compile_definitions(Visualise PUBLIC
-        OUTPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Output/"
+        VISUALISE_DATA_OUTPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Output/"
 )
 
 # Specify include paths.
@@ -27,7 +27,6 @@ target_include_directories(VisualiseTest PUBLIC
         ${PROJECT_SOURCE_DIR}/
         ${PROJECT_SOURCE_DIR}/Dependencies/Json/single_include/nlohmann
         ${PROJECT_SOURCE_DIR}/Dependencies/GTest/googletest-1.17.0/googletest/include
-        ${PROJECT_SOURCE_DIR}/Dependencies/Eigen/eigen-5.0.0/Eigen
 )
 
 # Add gtest project.

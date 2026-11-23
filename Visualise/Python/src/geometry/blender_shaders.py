@@ -43,7 +43,7 @@ class point_cloud:
         #     radius=0.0025,
         #     subdivisions=1
         # )
-        bpy.ops.mesh.primitive_cube_add(size=0.05)
+        bpy.ops.mesh.primitive_cube_add(size=1.0)
         sprite = bpy.context.active_object
         sprite.name = 'point_sprite'
         sprite.hide_set(True)
@@ -111,7 +111,7 @@ class point_cloud:
 
 __shaders__ = {'point_cloud': point_cloud()}
 
-def apply_point_cloud_shader(obj: bpy.types.Object):
+def apply_point_cloud_shader(obj: bpy.types.Object, point_size: float):
     modifier = obj.modifiers.new(
         name='Point Sprites',
         type='NODES'
@@ -119,4 +119,4 @@ def apply_point_cloud_shader(obj: bpy.types.Object):
 
     shader = __shaders__['point_cloud']
     modifier.node_group = shader.node_group
-    modifier[shader.in_percentage_size.identifier] = 1.0
+    modifier[shader.in_percentage_size.identifier] = point_size

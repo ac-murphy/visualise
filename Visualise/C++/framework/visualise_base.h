@@ -1,24 +1,16 @@
 #pragma once
+#include <deque>
 #include <filesystem>
 #include <iostream>
 #include <system_error>
+#include <unordered_set>
 
 #include "include_guard.h"
 #include "json.hpp"
 #include "system/json.h"
 
-namespace vis
+namespace vis::base
 {
-    struct frame_base
-    {
-        std::string name;
-    };
-    struct operation_base
-    {
-        std::string name;
-        std::string type;
-        std::vector<std::string> data_types;
-    };
     template <typename value_type>
     struct dataset_2D
     {
@@ -51,28 +43,117 @@ namespace vis
         {}
     };
 
-    inline size_t to_linear_index(const size_t& i, const size_t& j, const size_t& I, const size_t& J)
-    {
-        return i * J + j;
-    }
-
-    template <typename frame_type = frame_base, typename operation_type = operation_base>
-    requires (std::is_base_of_v<frame_base, frame_type> && std::is_base_of_v<operation_base, operation_type>)
-    class visualise_base
+    class operation
     {
     public:
-        visualise_base(const std::filesystem::path& dir = OUTPUT_DIR)
-        : _dir(dir)
+        template <typename derived_frame_type, typename operation_type> friend class frame;
+        template <typename frame_type> friend class visualise;
+
+    public:
+        operation(const std::filesystem::path& dir, const size_t& id)
         {
-            if (!std::filesystem::exists(_dir))
-                throw std::runtime_error("visualise_base::visualise_base \"specified directory is invalid\"");
-
-            visualise_base::refresh();
+            _dir = dir;
+            _id = id;
+            _sequence_id = -1;
+            std::filesystem::create_directories(dir);
         }
-        virtual ~visualise_base() = default;
 
     public:
-        void refresh() const
+        template <typename value_type>
+        void register_type()
+        {
+            if constexpr (vis::type_name_v<value_type> != "")
+                _data_types.push_back(std::string(vis::type_name_v<value_type>));
+            else
+                throw std::runtime_error(std::format("visualise_plotting::_use_type \"unrecognised data type \'{}\'\"", typeid(value_type).name()));
+        }
+
+    protected:
+        std::vector<std::string> _data_types;
+        std::filesystem::path _dir;
+        std::string _name;
+        std::string _type;
+        int32_t _sequence_id;
+        size_t _id;
+    };
+
+    template <typename T = frame, typename U = operation>
+    class frame
+    {
+    public:
+        using derived_frame_type = typename T;
+        using operation_type = typename U;
+        template <typename frame_type> friend class visualise;
+
+    public:
+        frame(const std::filesystem::path& dir, const size_t& id)
+        {
+            _dir = dir;
+            _id = id;
+            _sequence_id = -1;
+            std::filesystem::create_directories(dir);
+        }
+
+    public:
+        operation_type new_operation()
+        {
+            operation_type operation(_dir/std::format("operation_{}", _operation_id_counter), _operation_id_counter++);
+
+            return operation;
+        }
+        derived_frame_type new_frame()
+        {
+            derived_frame_type frame(_dir/std::format("frame_{}", _subframe_id_counter), _subframe_id_counter++);
+
+            return frame;
+        }
+        void add(operation_type& operation)
+        {
+            if (!_subframes.empty())
+                throw std::runtime_error("cannot add operations to parent frames");
+
+            operation._sequence_id = _operation_sequence_id_counter++;
+            _operations.push_back(std::move(operation));
+        }
+        void add(derived_frame_type& frame)
+        {
+            if (!_operations.empty())
+                throw std::runtime_error("cannot add frames to operational frame");
+
+            frame._sequence_id = _subframe_sequence_id_counter++;
+            _subframes.push_back(std::move(frame));
+        }
+
+    public:
+        void set_size(const size_t& i, const size_t& j)
+        {
+            _size = { i, j };
+        }
+
+    protected:
+        std::filesystem::path _dir;
+        size_t _id;
+        size_t _subframe_id_counter = 0;
+        size_t _operation_id_counter = 0;
+        int32_t _sequence_id;
+        int32_t _subframe_sequence_id_counter = 0;
+        int32_t _operation_sequence_id_counter = 0;
+        std::vector<operation_type> _operations;
+        std::vector<derived_frame_type> _subframes;
+        std::vector<std::string> _data_types;
+        std::pair<size_t, size_t> _size = { 1, 1 };
+        std::string _type;
+        std::string _name;
+    };
+
+    template <typename frame_type = frame>
+    class visualise
+    {
+    public:
+        using operation_type = typename frame_type::operation_type;
+
+    public:
+        visualise(const std::filesystem::path& output_dir = VISUALISE_DATA_OUTPUT_DIR) : _root_dir(output_dir), _dir(output_dir)
         {
             // Ensure directory exists.
             std::error_code ec;
@@ -88,137 +169,122 @@ namespace vis
             {
                 std::filesystem::remove_all(entry.path());
             }
+
+            // Initialise temporary directory.
+            _dir /= "tmp";
+            std::filesystem::create_directories(_dir);
         }
-        void set_dir(const std::filesystem::path& dir)
-        {
-            _dir = dir;
-        }
+        virtual ~visualise() = default;
 
     public:
-        void begin_frame(const std::string& name = "")
+        frame_type new_frame(const std::string& = "")
         {
-            if (_frame_open)
-                throw std::runtime_error("visualise_base::begin_frame \"frame already initialised\"");
-            if (_operation_open)
-                throw std::runtime_error("visualise_base::begin_frame \"cannot initialise frame with unfinished operation\"");
+            frame_type frame(_dir/std::format("frame_{}", _frame_id_counter), _frame_id_counter++);
 
-            // Create new frame instance.
-            _frame = frame_type{};
-            _frame.name = name;
-            _frame_open = true;
-
-            // Reset operation counter.
-            _operation_count = 0;
-
-            // Create directory.
-            std::filesystem::create_directories(visualise_base::_frame_dir());
-            visualise_base::_point_to_frame();
+            return frame;
         }
-        void end_frame()
+        void add(frame_type& frame)
         {
-            if (!_frame_open)
-                throw std::runtime_error("visualise_base::end_frame \"no frame to end\"");
-            if (_operation_open)
-                throw std::runtime_error("visualise_base::end_frame \"cannot end frame with unfinished operation\"");
-
-            // Write metadata.
-            nlohmann::json metadata;
-            metadata["name"] = _frame.name.empty() ? std::format("frame_{}", _frame_count) : _frame.name;
-            metadata["operation_count"] = _operation_count;
-            this->_end_frame(metadata);
-            io::json::write(metadata, visualise_base::_frame_dir(), "metadata", 4);
-
-            // Increment counter.
-            ++_frame_count;
-            _frame_open = false;
+            frame._sequence_id = _frame_sequence_id_counter++;
+            _frames.push_back(frame);
         }
-        void begin_operation(const std::string& type = "")
+        void run()
         {
-            if (!_frame_open)
-                throw std::runtime_error("visualise_base::begin_operation \"cannot initialise operation without a frame\"");
-            if (_operation_open)
-                throw std::runtime_error("visualise_base::begin_operation \"operation already initialised\"");
-
-            // Create new operation instance.
-            _operation = operation_type{};
-            _operation.type = type;
-            _operation_open = true;
-
-            // Create directory.
-            std::filesystem::create_directories(visualise_base::_operation_dir());
-            visualise_base::_point_to_operation();
-        }
-        void end_operation()
-        {
-            if (!_frame_open)
-                throw std::runtime_error("visualise_base::end_operation \"cannot end operation without a frame\"");
-            if (!_operation_open)
-                throw std::runtime_error("visualise_base::end_operation \"no operation to end\"");
-
-            // Write metadata.
-            nlohmann::json metadata;
-            metadata["type"] = _operation.type;
-            metadata["name"] = _operation.name.empty() ? std::format("operation_{}", _operation_count) : _operation.name;
-            metadata["data_types"] = _operation.data_types;
-            this->_end_operation(metadata);
-            io::json::write(metadata, visualise_base::_operation_dir(), "metadata", 4);
-
-            // Increment counter.
-            ++_operation_count;
-            _operation_open = false;
-        }
-        void run() const
-        {
-            nlohmann::json metadata;
-            metadata["frame_count"] = _frame_count;
-            this->_end_vis(metadata);
-            io::json::write(metadata, _dir, "metadata", 4);
-
-            if (_frame_count == 0)
-                std::cerr << "visualise_3D::run \"warning; called run() but generated no frames\"";
-
-            this->_run();
+            visualise::_write_visualisation();
+            this->_run_hook();
         }
 
     protected:
-        void virtual _run() const {}
-        void virtual _end_vis(nlohmann::json& metadata) const {}
-        void virtual _end_frame(nlohmann::json& metadata) const {}
-        void virtual _end_operation(nlohmann::json& metadata) const {}
-        void _point_to_frame()
+        void virtual _write_operation_metadata_hook(const operation_type& frame, nlohmann::json& metadata) {}
+        void virtual _write_frame_metadata_hook(const frame_type& frame, nlohmann::json& metadata) {}
+        void virtual _run_hook() = 0;
+        size_t virtual _supported_depth() { return 0; }
+
+    private:
+        void _write_operation_metadata(const std::filesystem::path& dir, operation_type& operation)
         {
-            _active_dir = visualise_base::_frame_dir();
+            // Write metadata.
+            nlohmann::json metadata;
+            metadata["type"] = "operation";
+            metadata["func"] = operation._type;
+            metadata["name"] = operation._name.empty() ? std::format("operation_{}", operation._sequence_id) : operation._name;
+            metadata["data_types"] = operation._data_types;
+
+            this->_write_operation_metadata_hook(operation, metadata);
+            io::json::write(metadata, dir, "metadata", 4);
         }
-        void _point_to_operation()
+        void _write_frame_metadata(const std::filesystem::path& dir, frame_type& frame)
         {
-            _active_dir = visualise_base::_operation_dir();
+            nlohmann::json metadata;
+            metadata["type"] = "frame";
+            metadata["name"] = frame._name.empty() ? std::format("frame_{}", frame._sequence_id) : frame._name;
+            metadata["operation_count"] = frame._operations.size();
+            metadata["subframe_count"] = frame._subframes.size();
+
+            this->_write_frame_metadata_hook(frame, metadata);
+            io::json::write(metadata, dir, "metadata", 4);
         }
-        std::filesystem::path _frame_dir() const
+        void _write_visualisation_recursive(const std::filesystem::path& dir, frame_type& frame, size_t& frame_counter)
         {
-            return _dir / ("frame_" + std::to_string(_frame_count));
+            // Create directory in filesystem.
+            std::filesystem::path new_frame_dir = dir/std::format("frame_{}", frame_counter);
+            std::filesystem::create_directories(new_frame_dir);
+            visualise::_write_frame_metadata(new_frame_dir, frame);
+
+            // Frame contains other frames only.
+            if (!frame._subframes.empty())
+            {
+                size_t new_frame_counter = 0;
+                for (auto& subframe : frame._subframes)
+                    _write_visualisation_recursive(new_frame_dir, subframe, new_frame_counter);
+
+                return;
+            }
+
+            // Frame contains operations only.
+            size_t operation_counter = 0;
+
+            for (auto& operation : frame._operations)
+            {
+                std::filesystem::path old_operation_dir = operation._dir;
+                std::filesystem::path new_operation_dir = new_frame_dir/std::format("operation_{}", operation_counter);
+                std::filesystem::create_directories(new_operation_dir.parent_path());
+                std::filesystem::rename(old_operation_dir, new_operation_dir);
+
+                visualise::_write_operation_metadata(new_operation_dir, operation);
+                ++operation_counter;
+            }
+
+            ++frame_counter;
         }
-        std::filesystem::path _operation_dir() const
+        void _write_visualisation()
         {
-            return visualise_base::_frame_dir() / ("operation_" + std::to_string(_operation_count));
-        }
-        template <typename value_type>
-        void _register_type()
-        {
-            if constexpr (vis::type_name_v<value_type> != "")
-                _operation.data_types.push_back(std::string(vis::type_name_v<value_type>));
-            else
-                throw std::runtime_error(std::format("visualise_plotting::_use_type \"unrecognised data type \'{}\'\"", typeid(value_type).name()));
+            // Write visualisation metadata.
+            nlohmann::json metadata;
+            metadata["frame_count"] = _frames.size(); // todo: need to count recursive frames too.
+            io::json::write(metadata, _root_dir, "metadata", 4);
+
+            // Write frames in "root/tmp" to "root" in correct order and hierarchy.
+            size_t frame_counter = 0;
+            for (auto& frame : _frames)
+                visualise::_write_visualisation_recursive(_root_dir, frame, frame_counter);
+
+            // Remove temporary directory.
+            for (const auto& entry : std::filesystem::directory_iterator(_dir))
+                std::filesystem::remove_all(entry.path());
+            std::filesystem::remove(_dir);
         }
 
     protected:
-        uint32_t _frame_count = 0;
-        uint32_t _operation_count = 0;
-        operation_type _operation;
-        frame_type _frame;
+        size_t _frame_id_counter = 0;
+        int32_t _frame_sequence_id_counter = 0;
+        std::deque<frame_type> _frames;
+        std::filesystem::path _root_dir;
         std::filesystem::path _dir;
-        std::filesystem::path _active_dir = _dir;
-
-        bool _operation_open = false;
-        bool _frame_open = false;
     };
+
+    inline size_t to_linear_index(const size_t& i, const size_t& j, const size_t& I, const size_t& J)
+    {
+        return i * J + j;
+    }
 }

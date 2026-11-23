@@ -12,7 +12,7 @@ TEST_F(Experimentation, TMP)
 }
 TEST_F(Experimentation, Geometric)
 {
-    vis::visualise_geometry vis;
+    vis::geometry::visualise vis;
 
     std::array<float, 3> point{1.0f, 1.0f, 1.0f};
     std::vector<std::array<float, 3>> points{
@@ -56,46 +56,47 @@ TEST_F(Experimentation, Geometric)
         for (size_t j = 0; j < N; j++)
             Z(i, j) = f(i * dx) + g(j * dy);
 
-    vis.begin_frame("surface");
+    auto f0 = vis.new_frame("surface");
     {
-        vis::surface<float> surface(X, Y, Z);
-        vis.add(surface);
+        vis::geometry::surface<float> surface(X, Y, Z);
+        f0.add(surface);
 
-        vis::box<float> box;
+        vis::geometry::box<float> box;
         box.vertices = points;
-        vis.add(box);
+        f0.add(box);
     }
-    vis.end_frame();
+    vis.add(f0);
 
-    vis.begin_frame("first-scene");
+    auto f1 = vis.new_frame("first-scene");
     {
-        vis.add_points(points);
-        vis.add_marker(point);
-        vis::arrow<float> arrow;
+        f1.add_points(points);
+        f1.add_marker(point);
+        vis::geometry::arrow<float> arrow;
         arrow.direction = { 1.0f, 1.0f, 1.0f };
+        f1.add(arrow);
     }
-    vis.end_frame();
+    vis.add(f1);
 
-    vis.begin_frame("second-scene");
+    auto f2 = vis.new_frame("second-scene");
     {
-        vis.add_marker(point);
-        vis.add_plane(point, std::array{ 1.0f, 1.0f, 1.0f });
-        vis.add_axes(point, basis);
+        f2.add_marker(point);
+        f2.add_plane(point, std::array{ 1.0f, 1.0f, 1.0f });
+        f2.add_axes(point, basis);
     }
-    vis.end_frame();
+    vis.add(f2);
 
-    vis.begin_frame("third-scene");
+    auto f3 = vis.new_frame("third-scene");
     {
-        vis.add_points(points);
-        vis.add_mesh(points, tri_indices);
+        f3.add_points(points);
+        f3.add_mesh(points, tri_indices);
     }
-    vis.end_frame();
+    vis.add(f3);
 
     vis.run();
 }
 TEST_F(Experimentation, Plotting)
 {
-    vis::visualise_plotting vis;
+    vis::plotting::visualise vis;
 
     std::vector<float> x, y1, y2, z;
     float dx = 0.1f;
@@ -116,64 +117,72 @@ TEST_F(Experimentation, Plotting)
             Z(i, j) = f(i * dx) + g(j * dx);
     }
 
-    vis.begin_frame("test 2D plot");
+    auto f0 = vis.new_frame("test 2D plot");
     {
-        vis.set_axis_labels("$x$", "$y$");
-        vis.set_legend_visible(true);
+        f0.set_axis_labels("$x$", "$y$");
+        f0.set_legend_visible(true);
 
         auto x = X;
         auto y = Z.row(0);
-        vis::plot_2D<float> plot;
+        vis::plotting::plot_2D<float> plot;
         plot.x_values = x;
         plot.y_values = y;
         plot.label = "$y = f(x)$";
-        vis.add(plot);
+        f0.add(plot);
     }
-    vis.end_frame();
+    vis.add(f0);
 
-    vis.begin_frame("test 3D plot");
+    auto f1 = vis.new_frame("test 3D plot");
     {
-        vis.set_axis_labels("$x$", "$y$", "$z$");
-        vis::plot_3D<float> plot;
+        f1.set_axis_labels("$x$", "$y$", "$z$");
+        vis::plotting::plot_3D<float> plot;
         plot.x_values = X;
         plot.y_values = X;
         plot.z_values = Z;
 
-        vis.add(plot);
+        f1.add(plot);
     }
-    vis.end_frame();
+    vis.add(f1);
 
-    vis.begin_frame("test 2D integer plot");
+    auto f2 = vis.new_frame("test 2D integer plot");
     {
-        vis::plot_2D<uint32_t> plot;
+        vis::plotting::plot_2D<uint32_t> plot;
         plot.x_values = { 1, 2, 3,                                    4, 5, 6 };
         plot.y_values = { 0, 0, 100'00, std::numeric_limits<uint32_t>::max(), 200'00, 200'00 };
-        vis.add(plot);
+        f2.add(plot);
     }
-    vis.end_frame();
+    vis.add(f2);
 
-    vis.begin_frame("test 2D mixed type plot");
+    auto f3 = vis.new_frame("test 2D mixed type plot");
     {
-        vis::plot_2D<int32_t, float> plot;
+        vis::plotting::plot_2D<int32_t, float> plot;
         plot.x_values = { 0,    1,    2,    3,    4,    5    };
         plot.y_values = { 1.0f, 2.0f, 1.0f, 3.0f, 3.0f, 4.0f };
-        vis.add(plot);
+        f3.add(plot);
     }
-    vis.end_frame();
+    vis.add(f3);
+
+    auto f4 = vis.new_frame("multiplot");
+    {
+        auto _f0 = vis.new_frame("subframe 0");
+        auto _f1 = vis.new_frame("subframe 1");
+        auto _f2 = vis.new_frame("subframe 2");
+        auto _f3 = vis.new_frame("subframe 3");
+
+        f4.set_size(2, 2);
+        f4.add(_f0);
+        f4.add(_f1);
+        f4.add(_f2);
+        f4.add(_f3);
+    }
+    vis.add(f4);
 
     vis.run();
 }
-// TEST_F(UnitTest, Converting_Array)
+// TEST_F(Experimentation, Plotting_ObjectOrientatedCanvas)
 // {
-//     vis::converting::array<float, 9> matrix_3_3 = {
-//         1.0f, 0.0f, 0.0f,
-//         0.0f, 1.0f, 0.0f,
-//         0.0f, 0.0f, 1.0f
-//     };
-//     Eigen::Matrix<float, 3, 3> eigen_matrix;
-//     eigen_matrix << 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f; //, 10.0f, 11.0f, 12.0f;
-//     matrix_3_3 = eigen_matrix;
-//
+//     vis::visualise_plotting vis;
+//     vis::canvas canvas = vis.begin_frame();
 // }
 
 class UnitTest : public ::testing::Test {};

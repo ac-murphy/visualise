@@ -7,7 +7,6 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import system.json as json
 
 if __name__ == "__main__":
     # 1. read command line arguments:
@@ -24,10 +23,10 @@ if __name__ == "__main__":
     # 2. run specified visualise mode (if possible):
     match args.mode:
         case 'geometry':
-            import geometry_main
-            geometry_main.main(args.input, args.settings)
+            from geometry.main import main
+            main(args.input, args.settings)
         case 'plotting':
-            import plotting_main
-            plotting_main.main(args.input, args.settings)
+            from plotting.main import main
+            main(args.input, args.settings)
         case _:
             raise ValueError(f'__main__ \"unsupported mode \'{args.mode}\'\"')
