@@ -35,22 +35,22 @@ The aim of this library is to be as generic as possible. As an inevitable side e
 ```c++
 std::vector<std::array<float, 3>> x_vector = { ... };
 std::deque<std::vector<float>> y_deque = { ... }; // Assume each element has 3 components.
-std::array<Eigen::Vector<float, 3>> z_array = { ... };
+std::array<Eigen::Vector<float, 3>, 3> z_array = { ... };
 
-vis::visualise_plotting visualiser;
+vis::plotting::visualise visualiser;
 
-visualiser.begin_frame();
-vis::plot_3D<float> plot;
+auto f = visualiser.new_frame("frame 0");
+vis::plotting::plot_3D<float> plot;
 plot.x = x_vector;
 plot.y = y_deque;
 plot.z = z_array;
+f.add(plot);
 
-visualiser.end_frame();
-
+visualiser.add(f);
 visualiser.run();
 ```
 
-So long as each data list is properly formed (i.e. `y_deque` has elements of length exactly 3), this will run exactly as expected. This is thanks to the underlying `vis::converting` sub-library, which is able to convert anything that supports an STL-like interface (`.begin()` and `.end()` for example) to an appropriately-wrapping container via *copy-assignment*. However, there are only a handful of containers that are officially tested, most notably:
+So long as each data list is properly formed (i.e. `y_deque` has elements of length exactly 3), this will run exactly as expected. This is thanks to the underlying `vis::converting` sub-library, which is able to convert anything that supports an STL-like interface (`.begin()` and `.end()` for example) to an appropriately-wrapping container via *copy-assignment*. However, there are only a handful of containers that are officially tested:
 
 - `std::vector<T>`
 - `std::array<T, N>`
@@ -58,11 +58,15 @@ So long as each data list is properly formed (i.e. `y_deque` has elements of len
 - `Eigen::Vector<T, N>`
 - `Eigen::Matrix<T, M, N>`
 
-So long as the desired datatype is listed above, it will work both on its own or nested in any combination of the above. For example,
-
+[//]: # (So long as the desired datatype is listed above, or the data is guaranteed to be stored contiguously, it will work both on its own or nested in any combination. For example,)
 ```c++
-
+std::array<std::vector<Eigen::Vector<float, 3>>, 6> x;
 ```
+is decomposed to
+```c++
+vis::array<vis::vector<vis::array<float, 3>>, 6> y;
+```
+as the only distinction made by the project is between statically-allocated and dynamically allocated memory.
 
 ## Development
 To set up Python so that it uses source files, the project must be opened as the top level (not as a subproject). This ensures that its CMakeLists.txt files are run, which tells the program to use source files. The next step is ensuring there is a virtual environment (venv) located in `Visualise/Python` and that it has the correct packages installed.
@@ -90,3 +94,11 @@ Open a terminal inside `Visualise/Visualise/Python` and run the following comman
 ```
 .../Visualise/Python> .venv/bin/python -m pip install -r requirements.txt
 ```
+
+## Dependencies & Third-Party Licenses
+
+This project uses the following Git submodules, each governed by its own license:
+
+- **[Json](https://github.com/nlohmann/json)** (`Visualise/Dependencies/Json`) — MIT License (`Json/LICENSE.MIT`)
+- **[Eigen](https://github.com/PX4/eigen)** (`VisualiseTest/Dependencies/Eigen/eigen-5.0.0`) — Mozilla Public License Version 2.0 (`eigen-5.0.0/LICENSE`)
+- **[GTest](https://github.com/google/googletest)** (`VisualiseTest/Dependencies/GTest/googletest-1.17.0`) — BSD-3-Clause (`googletest-1.17.0/LICENSE`)
