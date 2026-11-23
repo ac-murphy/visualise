@@ -94,7 +94,6 @@ def init():
     for child in list(workspace.children):
         bpy.data.collections.remove(child.collection)
 
-
     # hide archive:
     get_layer_collection('Archive').exclude = True
     get_layer_collection('Shader Assets').exclude = True

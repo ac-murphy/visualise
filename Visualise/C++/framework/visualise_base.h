@@ -153,7 +153,7 @@ namespace vis::base
         using operation_type = typename frame_type::operation_type;
 
     public:
-        visualise(const std::filesystem::path& output_dir = OUTPUT_DIR) : _root_dir(output_dir), _dir(output_dir)
+        visualise(const std::filesystem::path& output_dir = VISUALISE_DATA_OUTPUT_DIR) : _root_dir(output_dir), _dir(output_dir)
         {
             // Ensure directory exists.
             std::error_code ec;

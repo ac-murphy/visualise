@@ -19,7 +19,7 @@ message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 
 # Define CMake variables.
 target_compile_definitions(Visualise PUBLIC
-        OUTPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Output/"
+        VISUALISE_DATA_OUTPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Output/"
 )
 
 # Specify include paths.
