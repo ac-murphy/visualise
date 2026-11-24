@@ -8,6 +8,7 @@
 #include "framework/visualise_base.h"
 #include "framework/type_rules.h"
 #include "framework/converting_types.h"
+#include "framework/maths.h"
 #include "system/system.h"
 #include "system/bin.h"
 #include "system/json.h"
@@ -85,6 +86,43 @@ namespace vis::geometry
     {
         vis::converting::array<value_type, 3> location;
         vis::converting::array<value_type, 3> normal;
+    };
+
+    template <template <typename...> class T> struct make_obj;
+    template <template <typename...> class T, typename... Args>
+    auto make(Args&& args)
+    {
+        return vis::geometry::make_obj<T>(std::forward<Args>(args)...);
+    }
+
+    template <typename value_type>
+    struct make_obj<box>
+    {
+        box<value_type> operator()(const vis::converting::array<value_type, 3>& dimensions,
+                                   const vis::converting::array<value_type, 3>& location,
+                                   const vis::converting::matrix<value_type, 3, 3>& rotation)
+        {
+            box<value_type> box;
+            const value_type& length = dimensions[0];
+            const value_type& width = dimensions[1];
+            const value_type& height = dimensions[2];
+
+            Eigen::Vector<value_type, 3> location_eigen = maths::to_eigen_vector<value_type, 3>(location);
+            Eigen::Matrix<value_type, 3, 3> rotation_eigen = maths::to_eigen_matrix<value_type, 3, 3>(rotation);
+
+            size_t idx = 0;
+            for (auto i : { 1.0f, -1.0f })
+                for (auto j : { -1.0f, 1.0f })
+                    for (auto k : { -1.0f, 1.0f })
+                    {
+                        Eigen::Vector<value_type, 3> vertex_eigen(0.5f * length * i, 0.5f * width * j, 0.5f * height * k);
+                        vertex_eigen = rotation_eigen * vertex_eigen;
+                        vertex_eigen += location_eigen;
+                        box.vertices[idx] = vertex_eigen;
+                    }
+
+            return box;
+        }
     };
 
     class operation : public vis::base::operation
