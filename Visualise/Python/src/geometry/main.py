@@ -1,5 +1,6 @@
 from argparse import Namespace
 from pathlib import Path
+from enum import Enum
 import geometry.blender_interface as bpyi
 import geometry.blender_shaders as bpys
 import system.json as json
@@ -15,6 +16,13 @@ __defaults__ = {}
 def register(func):
     __functions__[func.__name__] = func
     return func
+
+
+class mesh_display_type(Enum):
+    vertices = 0
+    edges = 1
+    faces = 2
+
 
 @register
 def add_marker(*, data_path: Path):
@@ -69,9 +77,11 @@ def add_points(*, data_path: Path):
 
 @register
 def add_mesh_from_tris(*, data_path: Path):
+    data = json.read(data_path/'data')
     points =      bin.read(data_path/'points',      n_cols=3, dtype=np.float32)
     tri_indices = bin.read(data_path/'tri_indices', n_cols=3, dtype=np.uint32)
 
+    # display_type = mesh_display_type(data['display_as'])
     mesh_obj = bpyi.render_faces(points, tri_indices)
 
 @register

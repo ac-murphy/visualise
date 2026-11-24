@@ -92,6 +92,21 @@ TEST_F(Experimentation, Geometric)
     }
     vis.add(f3);
 
+    auto f4 = vis.new_frame("fourth-scene");
+    {
+        Eigen::Vector<float, 3> location(1.0f, 1.0f, 1.0f);
+        Eigen::Vector<float, 3> dimensions(1.0f, 0.5f, 0.3f);
+        Eigen::Matrix<float, 3, 3> rotation;
+        rotation << 1.0f, 0.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 0.0f, 1.0f;
+
+        auto box = vis::geometry::make<vis::geometry::box<float>>(dimensions, location, rotation);
+        box.options.display_as = vis::geometry::faces;
+        f4.add(box);
+    }
+    vis.add(f4);
+
     vis.run();
 }
 TEST_F(Experimentation, Plotting)
