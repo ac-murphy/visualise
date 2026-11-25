@@ -81,8 +81,11 @@ def add_mesh_from_tris(*, data_path: Path):
     points =      bin.read(data_path/'points',      n_cols=3, dtype=np.float32)
     tri_indices = bin.read(data_path/'tri_indices', n_cols=3, dtype=np.uint32)
 
-    # display_type = mesh_display_type(data['display_as'])
     mesh_obj = bpyi.render_faces(points, tri_indices)
+
+    display_type = mesh_display_type(data['display_as'])
+    if display_type == display_type.edges:
+        mesh_obj.display_type = 'WIRE'
 
 @register
 def add_mesh_from_quads(*, data_path: Path):
