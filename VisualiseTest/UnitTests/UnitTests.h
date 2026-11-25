@@ -102,7 +102,7 @@ TEST_F(Experimentation, Geometric)
                     0.0f, 0.0f, 1.0f;
 
         auto box = vis::geometry::make<vis::geometry::box<float>>(dimensions, location, rotation);
-        box.options.display_as = vis::geometry::faces;
+        box.options.display_type = vis::geometry::edges;
         f4.add(box);
     }
     vis.add(f4);

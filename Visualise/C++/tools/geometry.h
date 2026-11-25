@@ -24,7 +24,7 @@ namespace vis::geometry
 
     struct mesh_options
     {
-        vis::geometry::display_type display_as;
+        vis::geometry::display_type display_type = faces;
     };
 
     template <typename value_type> struct point_cloud
@@ -257,6 +257,10 @@ namespace vis::geometry
             io::bin::write(tri_mesh.points.to_std(), operation._dir, "points");
             io::bin::write(tri_mesh.tri_indices.to_std(), operation._dir, "tri_indices");
 
+            nlohmann::json data;
+            data["display_type"] = tri_mesh.options.display_type;
+            io::json::write(data, operation._dir, "data", 4);
+
             super::add(operation);
         }
         template <typename value_type>
@@ -269,7 +273,7 @@ namespace vis::geometry
             io::bin::write(quad_mesh.quad_indices.to_std(), operation._dir, "quad_indices");
 
             nlohmann::json data;
-            data["display_as"] = quad_mesh.options.display_as;
+            data["display_type"] = quad_mesh.options.display_type;
             io::json::write(data, operation._dir, "data", 4);
 
             super::add(operation);
