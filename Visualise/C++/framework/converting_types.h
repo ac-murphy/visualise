@@ -6,6 +6,7 @@
 
 #include "include_guard.h"
 #include "framework/type_rules.h"
+#include "Eigen"
 
 namespace vis::converting
 {
@@ -246,6 +247,10 @@ namespace vis::converting
         }
 
     public:
+        T& operator()(const size_t i, const size_t j) { return this->_data[i * N + j]; }
+        const T& operator()(const size_t i, const size_t j) const { return this->_data[i * N + j]; }
+
+    public:
         std::array<std::array<T, M>, N> to_std() const
         {
             std::array<std::array<T, M>, N> result;
@@ -281,6 +286,49 @@ namespace vis::converting
     bool operator!=(const std::array<T, N>& check, const vis::converting::array<T, N>& array)
     {
         return !(check == array);
+    }
+
+    template <typename value_type, size_t N = 0, typename vector_type>
+    auto to_eigen_vector(const vector_type& vector)
+    {
+        if constexpr (N == 0)
+        {
+            const size_t size = vector.size();
+            Eigen::VectorX<value_type> eigen_vector(size);
+            std::copy(vector.begin(), vector.end(), eigen_vector.data());
+            return eigen_vector;
+        }
+        else
+        {
+            Eigen::Vector<value_type, N> eigen_vector;
+            std::copy(vector.begin(), vector.end(), eigen_vector.data());
+            return eigen_vector;
+        }
+    }
+    template <typename value_type, size_t M = 0, size_t N = 0, typename matrix_type>
+    auto to_eigen_matrix(const matrix_type& matrix, const size_t rows = 0, const size_t cols = 0)
+    {
+        if constexpr (M == 0 && N == 0)
+        {
+            if (rows == 0 || cols == 0)
+                throw std::runtime_error("maths::to_eigen_matrix \"dynamically sized matrix rows and cols must be non-zero\"");
+
+            Eigen::Matrix<value_type, Eigen::Dynamic, Eigen::Dynamic> eigen_matrix(rows, cols);
+            for (size_t i = 0; i < rows; i++)
+                for (size_t j = 0; j < cols; j++)
+                    eigen_matrix(i, j) = matrix(i, j);
+
+            return eigen_matrix;
+        }
+        else
+        {
+            Eigen::Matrix<value_type, M, N> eigen_matrix;
+            for (size_t i = 0; i < M; i++)
+                for (size_t j = 0; j < N; j++)
+                    eigen_matrix(i, j) = matrix(i, j);
+
+            return eigen_matrix;
+        }
     }
 
     // std_type_trait<T> tests.

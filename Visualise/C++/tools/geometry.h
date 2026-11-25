@@ -8,12 +8,25 @@
 #include "framework/visualise_base.h"
 #include "framework/type_rules.h"
 #include "framework/converting_types.h"
+#include "framework/maths.h"
 #include "system/system.h"
 #include "system/bin.h"
 #include "system/json.h"
 
 namespace vis::geometry
 {
+    enum display_type
+    {
+        vertices = 0,
+        edges = 1,
+        faces = 2
+    };
+
+    struct mesh_options
+    {
+        vis::geometry::display_type display_type = faces;
+    };
+
     template <typename value_type> struct point_cloud
     {
         vis::converting::vector<vis::converting::array<value_type, 3>> points;
@@ -23,6 +36,7 @@ namespace vis::geometry
     };
     template <typename value_type> struct box
     {
+        vis::geometry::mesh_options options;
         vis::converting::array<vis::converting::array<value_type, 3>, 8> vertices;
     };
     template <typename value_type> struct surface : vis::base::dataset_3D<value_type>
@@ -71,6 +85,7 @@ namespace vis::geometry
     };
     template <typename value_type> struct mesh_base
     {
+        vis::geometry::mesh_options options;
         vis::converting::vector<vis::converting::array<value_type, 3>> points;
     };
     template <typename value_type> struct tri_mesh : mesh_base<value_type>
@@ -85,6 +100,42 @@ namespace vis::geometry
     {
         vis::converting::array<value_type, 3> location;
         vis::converting::array<value_type, 3> normal;
+    };
+
+    template <typename T> struct make_obj;
+    template <typename T, typename... Args>
+    auto make(Args&&... args)
+    {
+        return vis::geometry::make_obj<T>{}(std::forward<Args>(args)...);
+    }
+
+    template <typename value_type>
+    struct make_obj<box<value_type>>
+    {
+        box<value_type> operator()(const vis::converting::array<value_type, 3>& dimensions,
+                                   const vis::converting::array<value_type, 3>& location,
+                                   const vis::converting::matrix<value_type, 3, 3>& rotation)
+        {
+            box<value_type> box;
+            const value_type& length = dimensions[0];
+            const value_type& width = dimensions[1];
+            const value_type& height = dimensions[2];
+            const auto location_eigen = vis::converting::to_eigen_vector<value_type, 3>(location);
+            const auto rotation_eigen = vis::converting::to_eigen_matrix<value_type, 3, 3>(rotation);
+
+            size_t idx = 0;
+            for (auto i : { 1.0f, -1.0f })
+                for (auto j : { -1.0f, 1.0f })
+                    for (auto k : { -1.0f, 1.0f })
+                    {
+                        Eigen::Vector<value_type, 3> vertex_eigen(0.5f * length * i, 0.5f * width * j, 0.5f * height * k);
+                        vertex_eigen = rotation_eigen * vertex_eigen;
+                        vertex_eigen += location_eigen;
+                        box.vertices[idx++] = vertex_eigen;
+                    }
+
+            return box;
+        }
     };
 
     class operation : public vis::base::operation
@@ -206,6 +257,10 @@ namespace vis::geometry
             io::bin::write(tri_mesh.points.to_std(), operation._dir, "points");
             io::bin::write(tri_mesh.tri_indices.to_std(), operation._dir, "tri_indices");
 
+            nlohmann::json data;
+            data["display_type"] = tri_mesh.options.display_type;
+            io::json::write(data, operation._dir, "data", 4);
+
             super::add(operation);
         }
         template <typename value_type>
@@ -216,6 +271,10 @@ namespace vis::geometry
 
             io::bin::write(quad_mesh.points.to_std(), operation._dir, "points");
             io::bin::write(quad_mesh.quad_indices.to_std(), operation._dir, "quad_indices");
+
+            nlohmann::json data;
+            data["display_type"] = quad_mesh.options.display_type;
+            io::json::write(data, operation._dir, "data", 4);
 
             super::add(operation);
         }
@@ -265,28 +324,32 @@ namespace vis::geometry
 
             auto vertex_array = box.vertices.to_std();
             auto vertex_vector = std::vector(vertex_array.begin(), vertex_array.end());
-            frame::add_mesh(vertex_vector, quad_indices);
+            frame::add_mesh(vertex_vector, quad_indices, box.options);
         }
 
     /// Solid objects: shortcuts.
     public:
         template <typename vector_type>
         void add_mesh(const std::vector<vector_type>& points,
-                      const std::vector<std::array<types::id, 3>>& tri_indices)
+                      const std::vector<std::array<types::id, 3>>& tri_indices,
+                      const vis::geometry::mesh_options& options = {})
         {
             vis::geometry::tri_mesh<typename vector_type::value_type> tri_mesh;
             tri_mesh.points = points;
             tri_mesh.tri_indices = tri_indices;
+            tri_mesh.options = options;
 
             frame::add(tri_mesh);
         }
         template <typename vector_type>
         void add_mesh(const std::vector<vector_type>& points,
-                      const std::vector<std::array<types::id, 4>>& quad_indices)
+                      const std::vector<std::array<types::id, 4>>& quad_indices,
+                      const vis::geometry::mesh_options& options = {})
         {
             vis::geometry::quad_mesh<typename vector_type::value_type> quad_mesh;
             quad_mesh.points = points;
             quad_mesh.quad_indices = quad_indices;
+            quad_mesh.options = options;
 
             frame::add(quad_mesh);
         }
@@ -301,33 +364,15 @@ namespace vis::geometry
             frame::add(plane);
         }
         template <typename vector_type, typename matrix_type>
-        void add_box(const vector_type& location,
-                     const vector_type& dimensions,
+        void add_box(const vector_type& dimensions,
+                     const vector_type& location,
                      const matrix_type& rotation)
         {
             using value_type = typename vector_type::value_type;
-            vis::geometry::box<value_type> box;
 
-            // Read arguments.
-            auto [ lx, ly, lz ] = location;
-            auto [ dx, dy, dz ] = dimensions;
-            Eigen::Matrix<value_type, 3, 3> rotation_matrix;
-            for (size_t i = 0; i < 3; ++i)
-                for (size_t j = 0; j < 3; ++j)
-                    rotation_matrix(i, j) = rotation(i, j);
+            auto box_ = vis::geometry::make<box<value_type>>(dimensions, location, rotation);
 
-            // Convert each vertex.
-            size_t idx = 0;
-            for (auto i : { 1.0f, -1.0f })
-                for (auto j : { -1.0f, 1.0f })
-                    for (auto k : { -1.0f, 1.0f })
-                    {
-                        Eigen::Vector<value_type, 3> vertex = { lx + (0.5f * dx * i), ly + (0.5f * dy * j), lz + (0.5f * dz * k) };
-                        vertex = rotation_matrix * vertex;
-                        box.vertices[idx] = vertex;
-                    }
-
-            frame::add(box);
+            frame::add(box_);
         }
 
         // todo: finish.
